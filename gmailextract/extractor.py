@@ -248,8 +248,6 @@ class GmailImageExtractor(object):
                   "98765": [<pygmail.message.Attachment object at 0x543]}
         """
 
-        print selected_images
-
         ordered_by_gmail_id = dict()
         messages_to_change = dict()
 
@@ -287,6 +285,7 @@ class GmailImageExtractor(object):
 
         num_images_deleted = 0
         num_images_to_delete = 0
+        image_id = ""
 
         # calculate total images that need to be deleted
         for message, some_images in messages_to_change.iteritems():
@@ -301,9 +300,10 @@ class GmailImageExtractor(object):
 
         for gmail_id, some_attachments in messages_to_change.iteritems():
             for an_attachment in some_attachments:
+                image_id = an_attachment.sha1()
                 an_attachment.remove()
                 num_images_deleted += 1
-                _cb('removed', num_images_deleted, num_images_to_delete)
+                _cb('image-removed', num_images_deleted, num_images_to_delete, gmail_id, image_id)
             some_attachments[0].message.save(self.trash_folder.name, safe_label=label)
             num_messages_changed += 1
 

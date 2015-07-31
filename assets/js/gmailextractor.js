@@ -20,6 +20,7 @@ jQuery(function ($) {
 		select_bool = false,
 		$image_menu = $("#image-menu"),
 		$save = $("#save"),
+		$input = $("#input"),
 		rewrite_index = null,
 		rewrite_total = null,
 		feedback = null,
@@ -54,14 +55,12 @@ jQuery(function ($) {
 
 		//create thumbnail for image to be displayed in
 		//create a unique img_id for the purpose of selecting each image
-		$results_container.append('<div class="col-xs-6 col-md-3">' + 
-								  '<div class="thumbnail">' +
+		$results_container.append('<div class="thumbnail col-xs-6 col-md-3">' + 
 								  '<input class="img-checkbox" id="' + img_id + 
 								  '" name="' + msg_id + '" type="checkbox">' +
 								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
 								  '<img src="' + img.src + '">' + 
 								  '</a>' +
-								  '</div>' + 
 								  '</div>');
 	};
 
@@ -291,6 +290,22 @@ jQuery(function ($) {
 		}
 	};
 
+	remove_image = function(gmail_id, image_id){
+
+		var $image_thumbnail = $('#' + image_id);
+		//console.log($image_thumbnail.attr('id'), image_id);
+		//console.log($image_thumbnail.attr('name'), gmail_id);
+
+		if($image_thumbnail.attr('id') === image_id && $image_thumbnail.attr('name') === gmail_id){
+
+			//delete image thumbnail
+			$image_thumbnail.closest('div').remove();
+		}
+		else{
+
+		}
+	};
+
 	function save_file(encoded_images, image_names)
 	{
 		try {
@@ -317,9 +332,6 @@ jQuery(function ($) {
 		
 	};
 
-/* 
- * Adds the signed hmac key to an array
- */
 $(document).on( "click", "input.img-checkbox", function() {
 
 		var img_id = [ $(this).attr("name"), $(this).attr("id") ];
@@ -380,6 +392,10 @@ ws.onmessage = function (evt) {
 			hide_progress();
 			//$sync_form.fadeIn();
 			break;
+
+		case "image-removed":
+			remove_image(msg.gmail_id, msg.image_id)
+		break;
 
 		case "file-checking":
 			feedback(msg);
