@@ -94,7 +94,7 @@ class GmailImageExtractor(object):
 
         Returns:
             A new image with contrained proportions specified by the max basewidth
-            """
+        """
 
         img_type = img_type.split("/")[1]
 
@@ -118,7 +118,7 @@ class GmailImageExtractor(object):
         Returns:
             Returns a boolean description of whether we were able to connect
             to Gmail using the current parameters.
-            """
+        """
 
         mail = Account(self.email, password=self.password)
         trash_folder = mail.trash_mailbox()
@@ -139,7 +139,7 @@ class GmailImageExtractor(object):
         Return:
             The number of messages in the Gmail account that have at least one
             attachment (as advertised by Gmail).
-            """
+        """
 
         limit = self.limit if self.limit > 0 else False
         gm_ids = self.inbox.search("has:attachment", gm_ids=True, limit=limit)
@@ -166,7 +166,7 @@ class GmailImageExtractor(object):
 
         Returns:
             The number of images written to disk.
-            """
+        """
 
         def _cb(*args):
             if callback:
@@ -203,6 +203,7 @@ class GmailImageExtractor(object):
 
                         # Scale down image before encoding
                         img = self.get_resize_img(att.body(), att.type, 100, ('png', 'gif'))
+
                         if len(img) == 0:  # no img was resized
                             continue
 
@@ -362,11 +363,6 @@ class GmailImageExtractor(object):
         finally:
             zf.close()
 
-        # f = file("gmail_image_archive.zip", "w")
-        # f.write(s.getvalue())
-        # s.close()
-        # f.close()
-
         return zf
 
     def package_images(self, messages_to_save):
@@ -386,6 +382,12 @@ class GmailImageExtractor(object):
         return encoded_images, image_names
 
     def save(self, msg, callback=None):
+        """Creates an array of images based on user's the user's selection.
+
+        Returns:
+            packaged_images --array of images base64 encoded images
+            image_names --array of image names corresponding to packaged_images
+        """
 
         packaged_images = []
 
@@ -399,15 +401,7 @@ class GmailImageExtractor(object):
             print("Couldn't parse selected images.")
 
         try:
-            # zip_file = self.zip_images(messages)
             packaged_images, image_names = self.package_images(messages)
-
-            # encode zip_file to base64 to send via websocket
-            # with open(zip_file, 'rb') as fin, open('gmail_image_archive.zip.b64', 'w') as fout:
-            # encoded_zip_file = base64.encode(fin, fout)
-
-            # return True, encoded_zip_file
-            # return True, zip_file
             _cb("save-passed", packaged_images, image_names)
 
         except:
@@ -478,9 +472,9 @@ class GmailImageExtractor(object):
             """
 
         # try:
-        #    num_to_delete = self.num_deletions
+        # num_to_delete = self.num_deletions
         # except AttributeError:
-        #    num_to_delete = self.check_deletions()
+        # num_to_delete = self.check_deletions()
 
         def _cb(*args):
             if callback:

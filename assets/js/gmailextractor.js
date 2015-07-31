@@ -64,6 +64,7 @@ jQuery(function ($) {
 								  '</div>' + 
 								  '</div>');
 	};
+
 	hide_progress = function () {
 		$prog_container.fadeOut();
 		prog_hidden = true;
@@ -119,10 +120,12 @@ jQuery(function ($) {
 	};
 
 	previewImage = function (image_body) {
+
 		$("#imagePreview").attr("src", image_body);
-		//$("#imageModal").modal('show');
 		$("#imageModal").modal('show', function(){
+
 			$(this).find('.modal-body').css({
+
 				width:'auto', //probably not needed
 				height:'auto', //probably not needed 
 				'max-height':'100%'
@@ -130,6 +133,7 @@ jQuery(function ($) {
 		});
 	};
 
+	//TODO - select all doesn't select images in the correct format
 	$select_all.click(function(){
 
 		this.addClass("disabled");
@@ -254,6 +258,7 @@ jQuery(function ($) {
 	};
 
 	String.prototype.capitalizeFirstLetter = function(){
+
 		return this.charAt(0).toUpperCase() + this.slice(1);
 	};
 
@@ -322,7 +327,7 @@ $(document).on( "click", "input.img-checkbox", function() {
 		var num_checked = count_checked();
 
 		changeBtnState(num_checked, "delete");
-		//changeBtnState(num_checked, "save");
+		changeBtnState(num_checked, "save");
 
 		//checkbox is clicked, save filename in an array
 		if(is_checked){
