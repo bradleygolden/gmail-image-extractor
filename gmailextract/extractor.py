@@ -221,7 +221,7 @@ class GmailImageExtractor(object):
                         #          --hmac: autheticated hash
                         # _cb('image', msg_id, img_identifier, encoded_img, hmac_req)
 
-                        _cb('image', msg_id, img_identifier, encoded_img, msg_id)
+                        _cb('image', msg_id, img_identifier, encoded_img)
 
                         attachment_count += 1
                         num_messages += 1
@@ -247,6 +247,8 @@ class GmailImageExtractor(object):
                             <pygmail.message.Attachment object at 0x331],
                   "98765": [<pygmail.message.Attachment object at 0x543]}
         """
+
+        print selected_images
 
         ordered_by_gmail_id = dict()
         messages_to_change = dict()
@@ -335,6 +337,8 @@ class GmailImageExtractor(object):
         def _cb(*args):
             if callback:
                 callback(*args)
+
+        messages = {}
 
         try:
             messages = self.parse_selected_images(msg)

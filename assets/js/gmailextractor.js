@@ -40,7 +40,7 @@ jQuery(function ($) {
 	};
 
 	//displays images in the browser as they are found in the users mailbox
-	update_results = function (msg_id, img_id, enc_img, signed_req) {
+	update_results = function (msg_id, img_id, enc_img) {
 
 		if (results_hidden) {
 
@@ -57,7 +57,7 @@ jQuery(function ($) {
 		$results_container.append('<div class="col-xs-6 col-md-3">' + 
 								  '<div class="thumbnail">' +
 								  '<input class="img-checkbox" id="' + img_id + 
-								  '" name="' + signed_req + '" type="checkbox">' +
+								  '" name="' + msg_id + '" type="checkbox">' +
 								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
 								  '<img src="' + img.src + '">' + 
 								  '</a>' +
@@ -363,7 +363,7 @@ ws.onmessage = function (evt) {
 
 		case "image": //added
 			$image_menu.fadeIn();
-			update_results(msg.msg_id, msg.img_id, msg.enc_img, msg.hmac_key);
+			update_results(msg.msg_id, msg.img_id, msg.enc_img);
 			break;
 
 		case "save":
