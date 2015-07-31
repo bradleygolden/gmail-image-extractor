@@ -286,19 +286,18 @@ jQuery(function ($) {
 		}
 	};
 
-	function save_file(encoded_zip)
+	function save_file(encoded_images, image_names)
 	{
 		try {
 
 			//create JSZip object
 			var zip = new JSZip();
 
-			//for (var i = 0; i < encoded_zip.length; i++)
-			//{
-				//zip.file(i.toString(), encoded_zip[i], {base64: true});
-			//}
-			
-			zip.file("test.png", encoded_zip[0], {base64: true});
+			//add images and their names to zip file
+			for (var i = 0; i < encoded_images.length; i++)
+			{
+				zip.file(image_names[i], encoded_images[i], {base64: true});
+			}
 			
 			var content = null;
 
@@ -363,7 +362,7 @@ ws.onmessage = function (evt) {
 			break;
 
 		case "save":
-			save_file(msg.file);
+			save_file(msg.images, msg.image_names);
 			break;
 
 		case "downloading":

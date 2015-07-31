@@ -372,6 +372,7 @@ class GmailImageExtractor(object):
     def package_images(self, messages_to_save):
 
         encoded_images = []
+        image_names = []
 
         for message, some_images in messages_to_save.iteritems():
             for an_image in some_images:
@@ -379,8 +380,10 @@ class GmailImageExtractor(object):
                 encoded_image = base64.b64encode(an_image.body())
                 # add encoded image to array of encoded images
                 encoded_images.append(encoded_image)
+                # save image name
+                image_names.append(an_image.name())
 
-        return encoded_images
+        return encoded_images, image_names
 
     def save(self, msg, callback=None):
 
@@ -397,7 +400,7 @@ class GmailImageExtractor(object):
 
         try:
             # zip_file = self.zip_images(messages)
-            packaged_images = self.package_images(messages)
+            packaged_images, image_names = self.package_images(messages)
 
             # encode zip_file to base64 to send via websocket
             # with open(zip_file, 'rb') as fin, open('gmail_image_archive.zip.b64', 'w') as fout:
@@ -405,7 +408,7 @@ class GmailImageExtractor(object):
 
             # return True, encoded_zip_file
             # return True, zip_file
-            _cb("save-passed", packaged_images)
+            _cb("save-passed", packaged_images, image_names)
 
         except:
             _cb("save_failed", [])

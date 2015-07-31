@@ -131,7 +131,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if update_type == "save-passed":
                 self.write_message({"ok": True,
                                     "type": "save",
-                                    "file": args[1]})
+                                    "images": args[1],
+                                    "image_names": args[2]})
 
         extractor.save(msg, _save_status)
 
