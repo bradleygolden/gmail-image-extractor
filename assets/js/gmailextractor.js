@@ -297,6 +297,7 @@ jQuery(function ($) {
 		//console.log($image_thumbnail.attr('name'), gmail_id);
 
 		if($image_thumbnail.attr('id') === image_id && $image_thumbnail.attr('name') === gmail_id){
+			console.log("removed", image_id, gmail_id);
 
 			//delete image thumbnail
 			$image_thumbnail.closest('div').remove();
