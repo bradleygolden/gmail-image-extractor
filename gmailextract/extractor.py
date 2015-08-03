@@ -202,7 +202,8 @@ class GmailImageExtractor(object):
                         # STEP 3 - Scale down images and encode into base64
 
                         # Scale down image before encoding
-                        img = self.get_resize_img(att.body(), att.type, 100, ('png', 'gif'))
+                        # img = self.get_resize_img(att.body(), att.type, 100, ('png', 'gif'))
+                        img = att.body()
 
                         if len(img) == 0:  # no img was resized
                             continue
@@ -250,6 +251,7 @@ class GmailImageExtractor(object):
 
         ordered_by_gmail_id = dict()
         messages_to_change = dict()
+        used_attachments = []
 
         # first group and order selected images by gmail_id and attachment_id
         for gmail_id, an_attachment in selected_images['image']:
@@ -262,11 +264,35 @@ class GmailImageExtractor(object):
         for gmail_id in ordered_by_gmail_id:
             message_to_change = self.inbox.fetch_gm_id(gmail_id, full=True)
             attach_hashes = {a.sha1(): a for a in message_to_change.attachments()}
+
+            used_attachments = []
+
             for an_attachment in ordered_by_gmail_id[gmail_id]:
+                new_attachment = attach_hashes[an_attachment]
                 if gmail_id in messages_to_change:
-                    messages_to_change[gmail_id].append(attach_hashes[an_attachment])
+                    # this checks that the attachment object is not already
+                    # in messages_to_change
+                    # if the object is already in messages to change, this means
+                    # there is a duplicate image and we must select the next
+                    # duplicate image object to remove
+                    # i.e. if object 0x312 is found, we must prevent object
+                    # 0x312 from being written to the messages_to_change dict
+                    # or the delete process will fail for multiple duplicate images
+                    for existing_attachment in messages_to_change[gmail_id]:
+                        if hex(id(new_attachment)) == hex(id(existing_attachment)):
+                            # a duplicate exists
+                            # find_unique_att
+                            for att in message_to_change.attachments():
+                                for used in used_attachments:
+                                    if hex(id(att)) != hex(id(used)) and att.sha1() == att.sha1():
+                                        messages_to_change[gmail_id].append(att)
+                                        break
+                        else:
+                            messages_to_change[gmail_id].append(attach_hashes[an_attachment])
+                            break
                 else:
                     messages_to_change[gmail_id] = [attach_hashes[an_attachment]]
+                    used_attachments.append(attach_hashes[an_attachment])
 
         return messages_to_change
 
@@ -294,6 +320,10 @@ class GmailImageExtractor(object):
 
         num_messages_changed = 0
 
+        for gmail_id, some_attachments in messages_to_change.iteritems():
+            for an_attachment in some_attachments:
+                print an_attachment
+
         def _cb(*args):
             if callback:
                 callback(*args)
@@ -301,9 +331,10 @@ class GmailImageExtractor(object):
         for gmail_id, some_attachments in messages_to_change.iteritems():
             for an_attachment in some_attachments:
                 image_id = an_attachment.sha1()
-                an_attachment.remove()
-                num_images_deleted += 1
-                _cb('image-removed', num_images_deleted, num_images_to_delete, gmail_id, image_id)
+                if an_attachment.remove():
+                    num_images_deleted += 1
+                    _cb('image-removed', num_images_deleted, num_images_to_delete, gmail_id,
+                        image_id)
             some_attachments[0].message.save(self.trash_folder.name, safe_label=label)
             num_messages_changed += 1
 
@@ -343,7 +374,7 @@ class GmailImageExtractor(object):
         try:
             messages = self.parse_selected_images(msg)
         except:
-            print("Couldn't parse selected images.")
+            print "Couldn't parse selected images."
 
         num_messages_changed, num_images_deleted = self.do_delete(messages, callback)
 
