@@ -135,9 +135,7 @@ jQuery(function ($) {
 	//TODO - select all doesn't select images in the correct format
 	$select_all.click(function(){
 
-		this.addClass("disabled");
-
-		var img_id = [];
+		//this.addClass("disabled");
 
 		//select all inputs if not selected
 		if(select_bool === false){
@@ -145,13 +143,15 @@ jQuery(function ($) {
 			$("input.img-checkbox").prop("checked", true);	
 
 			$("input.img-checkbox").each(function(){
-				img_id.push([$(this).attr("name"), $(this).attr("id")]); 
+				img = new Array(2);
+				img[0] = $(this).attr("name");
+				img[1] = $(this).attr("id");
+				
+				//push selected images to selected images array
+				selected_imgs.push(img);
 			}); 
 
 			select_bool = true;
-
-			//push all selected images to selected images array
-			selected_imgs.push(img_id);
 
 			//change name of button to deselect all
 			$("#select-all").text("Deselect All");
@@ -173,7 +173,7 @@ jQuery(function ($) {
 		//change delete button state
 		num_checked = count_checked();
 		changeBtnState(num_checked, "delete");
-		// changeBtnState(num_checked, "save");
+		changeBtnState(num_checked, "save");
 	});
 
 	//on click sends selected images to server to retreive full sized images
@@ -293,11 +293,8 @@ jQuery(function ($) {
 	remove_image = function(gmail_id, image_id){
 
 		var $image_thumbnail = $('#' + image_id);
-		//console.log($image_thumbnail.attr('id'), image_id);
-		//console.log($image_thumbnail.attr('name'), gmail_id);
 
 		if($image_thumbnail.attr('id') === image_id && $image_thumbnail.attr('name') === gmail_id){
-			console.log("removed", image_id, gmail_id);
 
 			//delete image thumbnail
 			$image_thumbnail.closest('div').remove();

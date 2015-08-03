@@ -197,9 +197,13 @@ class GmailImageExtractor(object):
 
                         # STEP 2 - Note: unique gmail_id for each message
                         msg_id = msg.gmail_id
-                        # img_identifier = att.sha1()
+
+                        # unique id for each attachment
+                        # uses the attachment's hex memory value
                         img_identifier = hex(id(att))
 
+                        # create map to use later for linking
+                        # each message with each attachment
                         if img_identifier in self.mapping:
                             self.mapping[msg_id].append(msg)
                         else:
@@ -315,10 +319,6 @@ class GmailImageExtractor(object):
 
         num_messages_changed = 0
 
-        for gmail_id, some_attachments in messages_to_change.iteritems():
-            for an_attachment in some_attachments:
-                print an_attachment
-
         def _cb(*args):
             if callback:
                 callback(*args)
@@ -366,10 +366,10 @@ class GmailImageExtractor(object):
 
         messages = {}
 
-        # try:
-        messages = self.parse_selected_images(msg)
-        # except:
-        #     print "Couldn't parse selected images."
+        try:
+            messages = self.parse_selected_images(msg)
+        except:
+            print "Couldn't parse selected images."
 
         num_messages_changed, num_images_deleted = self.do_delete(messages, callback)
 
