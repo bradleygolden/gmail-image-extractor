@@ -140,9 +140,12 @@ jQuery(function ($) {
 		//select all inputs if not selected
 		if(select_bool === false){
 
-			$("input.img-checkbox").prop("checked", true);	
+			//$("input.img-checkbox").prop("checked", true);	
 
 			$("input.img-checkbox").each(function(){
+				//set property of each checkbox to checked
+				$(this).prop('checked', true);
+
 				img = new Array(2);
 				img[0] = $(this).attr("name");
 				img[1] = $(this).attr("id");
@@ -161,7 +164,11 @@ jQuery(function ($) {
 		//deselect all inputs if selected
 		else {
 
-			$("input").prop("checked", false);	
+			$("input.img-checkbox").each(function(){
+				//set property of each checkbox to checked
+				$(this).prop("checked", false);	
+			});
+
 			select_bool = false;
 
 			//pop all selected images in selected images array
@@ -335,6 +342,7 @@ $(document).on( "click", "input.img-checkbox", function() {
 		var img_id = [ $(this).attr("name"), $(this).attr("id") ];
 		var is_checked = $(this).prop('checked');
 		var num_checked = count_checked();
+		var select_bool = false;
 
 		changeBtnState(num_checked, "delete");
 		changeBtnState(num_checked, "save");
@@ -371,7 +379,7 @@ ws.onmessage = function (evt) {
 			num_messages = msg.num;
 			break;
 
-		case "image": //added
+		case "image":
 			$image_menu.fadeIn();
 			update_results(msg.msg_id, msg.img_id, msg.enc_img);
 			break;
