@@ -57,7 +57,7 @@ jQuery(function ($) {
 		$results_container.append('<div class="col-xs-6 col-md-3">' + 
 								'<div class="thumbnail">' +
 								'<input class="img-checkbox" id="' + img_id + 
-								'" name="' + msg_id + '" type="checkbox">' +
+								'" name="' + msg_id + '" type="checkbox" style="display:none;"">' +
 								'<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
 								'<img src="' + img.src + '">' + 
 								'</a>' +
@@ -316,6 +316,9 @@ jQuery(function ($) {
 	{
 		try {
 
+			total_images = encoded_images.length;
+			zipped_images = 0;
+
 			//create JSZip object
 			var zip = new JSZip();
 
@@ -323,6 +326,8 @@ jQuery(function ($) {
 			for (var i = 0; i < encoded_images.length; i++)
 			{
 				zip.file(image_names[i], encoded_images[i], {base64: true});
+				zipped_images += 1;
+				console.log("zipped:", zipped_images, "total", total_images);
 			}
 			
 			var content = null;
@@ -401,8 +406,9 @@ ws.onmessage = function (evt) {
 
 		case "download-complete":
 			feedback(msg, "Please check all attachments you'd like removed from your GMail account");
-			$image_menu.fadeIn();
 			hide_progress();
+			$image_menu.fadeIn();
+			$('.img-checkbox').show()
 			//$sync_form.fadeIn();
 			break;
 

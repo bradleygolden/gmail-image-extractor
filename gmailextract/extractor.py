@@ -13,6 +13,7 @@ import zipfile
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
+attachment_count = 0
 
 
 class GmailImageExtractor(object):
@@ -172,6 +173,7 @@ class GmailImageExtractor(object):
             if callback:
                 callback(*args)
 
+        global attachment_count
         attachment_count = 0
         num_messages = 0
         offset = 0
@@ -403,6 +405,8 @@ class GmailImageExtractor(object):
 
         encoded_images = []
         image_names = []
+        images_packaged = 0
+        global attachment_count
 
         for message, some_images in messages_to_save.iteritems():
             for an_image in some_images:
@@ -412,6 +416,8 @@ class GmailImageExtractor(object):
                 encoded_images.append(encoded_image)
                 # save image name
                 image_names.append(an_image.name())
+                images_packaged += 1
+                print "packaged: %d, total: %d" % (images_packaged, attachment_count)
 
         return encoded_images, image_names
 
