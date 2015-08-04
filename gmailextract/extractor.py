@@ -1,6 +1,6 @@
 import os
 import config
-# import PIL
+import PIL
 from PIL import Image
 import StringIO
 from hashlib import sha256
@@ -87,7 +87,7 @@ class GmailImageExtractor(object):
 
         return hashed.digest().encode("base64").rstrip('\n')
 
-    def get_resize_img(self, img, img_type, basewidth=100, supported_formats=('jpeg', 'gif',
+    def get_resize_img(self, img, img_type, basewidth=300, supported_formats=('jpeg', 'gif',
                                                                               'png')):
         """Constrains proportions of an image object. The max width and support image formats are
         predefined by this function by default.
@@ -99,15 +99,15 @@ class GmailImageExtractor(object):
         img_type = img_type.split("/")[1]
 
         if img_type in supported_formats:
-            buffer = StringIO.StringIO()
-            img_object = Image.open(StringIO.StringIO(img))
-            wpercent = (basewidth / float(img_object.size[0]))
-            hsize = int((float(img_object.size[1]) * float(wpercent)))
-            img = img_object.resize((basewidth, hsize), Image.NEAREST)
-            format = img_type
-            img_object.save(buffer, format)
+            img_buffer = StringIO.StringIO()
+            img = Image.open(StringIO.StringIO(img))
+            wpercent = (basewidth / float(img.size[0]))
+            hsize = int((float(img.size[1]) * float(wpercent)))
+            img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+            img_format = img_type
+            img.save(img_buffer, img_format)
 
-            return buffer.getvalue()
+            return img_buffer.getvalue()
         else:
             return ""
 
@@ -212,8 +212,8 @@ class GmailImageExtractor(object):
                         # STEP 3 - Scale down images and encode into base64
 
                         # Scale down image before encoding
-                        # img = self.get_resize_img(att.body(), att.type, 100, ('png', 'gif'))
-                        img = att.body()
+                        img = self.get_resize_img(att.body(), att.type)
+                        # img = att.body()
 
                         if len(img) == 0:  # no img was resized
                             continue
