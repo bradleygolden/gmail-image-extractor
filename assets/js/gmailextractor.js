@@ -54,13 +54,15 @@ jQuery(function ($) {
 
 		//create thumbnail for image to be displayed in
 		//create a unique img_id for the purpose of selecting each image
-		$results_container.append('<div class="thumbnail col-xs-6 col-md-3">' + 
-								  '<input class="img-checkbox" id="' + img_id + 
-								  '" name="' + msg_id + '" type="checkbox">' +
-								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
-								  '<img src="' + img.src + '">' + 
-								  '</a>' +
-								  '</div>');
+		$results_container.append('<div class="col-xs-6 col-md-3">' + 
+								'<div class="thumbnail">' +
+								'<input class="img-checkbox" id="' + img_id + 
+								'" name="' + msg_id + '" type="checkbox">' +
+								'<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
+								'<img src="' + img.src + '">' + 
+								'</a>' +
+								'</div>' +
+								'</div>');
 	};
 
 	hide_progress = function () {
@@ -303,7 +305,7 @@ jQuery(function ($) {
 		if($image_thumbnail.attr('id') === image_id && $image_thumbnail.attr('name') === gmail_id){
 
 			//delete image thumbnail
-			$image_thumbnail.closest('div').remove();
+			$image_thumbnail.parents('div').eq(1).remove();
 		}
 		else{
 
@@ -385,7 +387,6 @@ ws.onmessage = function (evt) {
 			break;
 
 		case "image":
-			$image_menu.fadeIn();
 			update_results(msg.msg_id, msg.img_id, msg.enc_img);
 			break;
 
@@ -400,6 +401,7 @@ ws.onmessage = function (evt) {
 
 		case "download-complete":
 			feedback(msg, "Please check all attachments you'd like removed from your GMail account");
+			$image_menu.fadeIn();
 			hide_progress();
 			//$sync_form.fadeIn();
 			break;
