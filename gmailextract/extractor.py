@@ -212,7 +212,11 @@ class GmailImageExtractor(object):
                         # STEP 3 - Scale down images and encode into base64
 
                         # Scale down image before encoding
-                        img = self.get_resize_img(att.body(), att.type)
+                        try:
+                            img = self.get_resize_img(att.body(), att.type, 500)
+                        except:
+                            print "Couldn't open image " + att.name()
+                            continue
                         # img = att.body()
 
                         if len(img) == 0:  # no img was resized
