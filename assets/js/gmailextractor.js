@@ -1,11 +1,11 @@
 jQuery(function ($) {
 
 	var prog_hidden = true,
-		results_hidden = true, //added
+		results_hidden = true,
 		loc = window.location,
 		$prog_container = $(".progress"),
 		$prog = $(".progress-bar"),
-		$results_container = $(".results"), //added
+		$results_container = $(".results"),
 		$email = $("#email"),
 		$pass = $("#password"),
 		$submit = $("#submit"),
@@ -27,13 +27,12 @@ jQuery(function ($) {
 		num_messages = null,
 		update_progress = null,
 		hide_progress = null,
-		update_results = null, //added 
+		update_results = null,
 		img_id = null,
-		hide_results = null, //added
+		hide_results = null,
 		selected_imgs = [],
 		ws = new WebSocket("ws://" + loc.host + "/ws");
 
-	//added
 	hide_results = function () {
 
 		$results_container.fadeOut();
@@ -140,18 +139,18 @@ jQuery(function ($) {
 		//select all inputs if not selected
 		if(select_bool === false){
 
-			//$("input.img-checkbox").prop("checked", true);	
+			//clear all selected images first
+			selected_imgs = []
 
+			//push all images to selected_imgs array
 			$("input.img-checkbox").each(function(){
 				//set property of each checkbox to checked
 				$(this).prop('checked', true);
 
-				img = new Array(2);
-				img[0] = $(this).attr("name");
-				img[1] = $(this).attr("id");
+				var img_info = [$(this).attr("name"), $(this).attr("id")];
 				
 				//push selected images to selected images array
-				selected_imgs.push(img);
+				selected_imgs.push(img_info);
 			}); 
 
 			select_bool = true;
@@ -182,7 +181,7 @@ jQuery(function ($) {
 		changeBtnState(num_checked, "delete");
 		changeBtnState(num_checked, "save");
 	});
-
+	
 	//on click sends selected images to server to retreive full sized images
 	$save.click(function(){
 
@@ -339,7 +338,7 @@ jQuery(function ($) {
 
 $(document).on( "click", "input.img-checkbox", function() {
 
-		var img_id = [ $(this).attr("name"), $(this).attr("id") ];
+		var img_info = [ $(this).attr("name"), $(this).attr("id") ];
 		var is_checked = $(this).prop('checked');
 		var num_checked = count_checked();
 		var select_bool = false;
@@ -350,15 +349,21 @@ $(document).on( "click", "input.img-checkbox", function() {
 		//checkbox is clicked, save filename in an array
 		if(is_checked){
 
-		selected_imgs.push(img_id);
+			selected_imgs.push(img_info);
 		}
+
 		//checkbox is unclicked, remove filename from the array
 		else {
 
-		var index = selected_imgs.indexOf(img_id); 
-		selected_imgs.splice(index, 1);
+			var index = -1; 
+			for (i=0; i<selected_imgs.length; i++){
+				if (selected_imgs[i][1].localeCompare(img_info[1]) === 0){
+					index = i
+				}
+			}
+			selected_imgs.splice(index, 1);
 		}
-		});
+});
 
 ws.onmessage = function (evt) {
 	var msg = JSON.parse(evt.data);
