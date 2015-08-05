@@ -2,7 +2,7 @@ Gmail Email Extractor
 ===
 Offers Gmail users the ability to scan their mailbox for images and save/delete those images.
 
-![Alt Text](https://github.com/bradleygolden/gmail-image-extractor/preview.gif)
+![Alt Text](https://github.com/bradleygolden/gmail-image-extractor/blob/master/preview.gif?raw=true)
 
 ## Delete functionality - Working
 * This feature works very well with both small and large datasets of varying types.
