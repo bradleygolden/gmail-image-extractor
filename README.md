@@ -86,6 +86,14 @@ Todo (In order of importance)
   - [ ] Create delete progress bar - images already disappear as they are erased, this is extra
   - [ ] Display total images saved/deleted at the top of the page
   - [ ] Feedback feature - allow users to send feedback
+ 
+Contributing
+---
+1. Fork it ( https://github.com/[my-github-username]/gmail-image-extractor/fork )
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create a new Pull Request
 
 Requirements
 ---
@@ -95,3 +103,4 @@ Requirements
  * [httplib2](https://github.com/jcgregorio/httplib2)
  * [imaplib2](https://github.com/bcoe/imaplib2)
  * [oauth2client](https://github.com/google/oauth2client)
+ * [pillow](https://github.com/python-pillow/Pillow)
