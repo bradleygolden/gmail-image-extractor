@@ -38,7 +38,7 @@ Run the server
 $ python webapp.py
 ```
 
-Checkout the app at
+Checkout the app on your browser at
 ```
 localhost:8888
 ```
