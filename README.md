@@ -44,6 +44,11 @@ Offers Gmail users the ability to scan their mailbox for images and save/delete 
   - [ ] Display total images saved/deleted at the top of the page
   - [ ] Feedback feature - allow users to send feedback
 
-Requirements
+## Requirements
 ---
  * [pygmail](https://github.com/snyderp/pygmail)
+ * [tornado](http://www.tornadoweb.org/en/stable/)
+ * [google-api-python-client](https://github.com/google/google-api-python-client)
+ * [httplib2](https://github.com/jcgregorio/httplib2)
+ * [imaplib2](https://github.com/bcoe/imaplib2)
+ * [oauth2client](https://github.com/google/oauth2client)
