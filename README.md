@@ -1,8 +1,47 @@
-Gmail Email Extractor
+Gmail Image Extractor
 ===
-Offers Gmail users the ability to scan their mailbox for images and save/delete those images.
+Gmail Image Extractor is a web application that offers Gmail users the ability to scan their mailbox for images and save/delete those images.
 
 ![Alt Text](https://github.com/bradleygolden/gmail-image-extractor/blob/master/preview.gif?raw=true)
+
+Installation
+---
+Install Virtualenv
+```
+pip install virtualenv
+```
+
+Make a project directory using Virtualenv
+```
+virtualenv gmail-image-extractor
+```
+
+Clone this repo in the project directory
+```
+cd gmail-image-extractor
+git clone https://github.com/bradleygolden/gmail-image-extractor.git
+```
+
+Enter virtualenv
+```
+source bin/activate
+```
+
+Install dependencies
+```
+cd gmail-image-extractor
+pip install -r requirements.txt
+```
+
+Run the server
+```
+python webapp.py
+```
+
+Checkout the app at
+```
+localhost:8888
+```
 
 Delete functionality - Working
 ---
