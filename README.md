@@ -4,10 +4,12 @@ Offers Gmail users the ability to scan their mailbox for images and save/delete 
 
 ![Alt Text](https://github.com/bradleygolden/gmail-image-extractor/blob/master/preview.gif?raw=true)
 
-## Delete functionality - Working
+Delete functionality - Working
+---
 * This feature works very well with both small and large datasets of varying types.
 
-## Save functionality - Broken
+Save functionality - Broken
+---
 * This feature is ridden with issues
   * Current solution
     * I originally tried to send all of the images in packets of 10 via web sockets to the front-end where the front-end combines the packets and puts them in one large zip file. The user can then choose where to download that file. This works intermittently depending on the browser being used and the file size. This doesn't work for large data sets generally 500mb or more. This method makes the solution to the problem difficult.
@@ -15,7 +17,8 @@ Offers Gmail users the ability to scan their mailbox for images and save/delete 
     * Create zip server size, save it, and send file to front-end. File size will have to be limited roughly 400mb
     * For larger image sets, the solution is still unknown...
 
-## Current Bugs
+Current Bugs
+---
   * The server does not allow for multiple users to run the image extractor at the same time.
     * Solution - Allow the server to run asynchronously
   * Gmails security settings make it difficult to access gmail account without manually changing settings in google's security console (this is a tricky process)
@@ -23,7 +26,8 @@ Offers Gmail users the ability to scan their mailbox for images and save/delete 
   * Save functionality breaks after the first save
     * Solution - This bug hasn't been explored in detail yet
 
-## Todo (In order of importance)
+Todo (In order of importance)
+---
   - [ ] Display "Are you sure?" prompt to user prior deletion
   - [ ] Save feature - mentioned above
   - [ ] Create save progress bar - looks as if the app is broken, needs a progress bar
@@ -44,7 +48,7 @@ Offers Gmail users the ability to scan their mailbox for images and save/delete 
   - [ ] Display total images saved/deleted at the top of the page
   - [ ] Feedback feature - allow users to send feedback
 
-## Requirements
+Requirements
 ---
  * [pygmail](https://github.com/snyderp/pygmail)
  * [tornado](http://www.tornadoweb.org/en/stable/)
