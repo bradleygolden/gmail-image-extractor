@@ -347,8 +347,9 @@ jQuery(function ($) {
 
 			var total_images = images.length;
 			var zipped_images = 0;
-			var count = 1;
-			var curr = 0;
+			var count = 2;
+			var prev = count;
+			var duplicate_tag = "";
 			
 
 			//create JSZip object
@@ -358,40 +359,37 @@ jQuery(function ($) {
 			for (var i = 0; i < images.length; i++)
 			{
 				try {
-						//console.log(zip.file(names[i].name));
+						//manange duplicate images
 						while(zip.file(names[i]).name != null)
 						{
-							//file with that name already exists in the zip directory
-							//add (1) or (2).... to end of name if duplicate
-							while(names[i].indexOf("(" + count + ")") > -1)
-							{
-								count++;	
-							}
-
-							//console.log("original", names[i]);
-
-							//TODO - fix duplicate image name tags
-							//get img_type
+							//console.log("duplicate image exists:", names[i]);
+							//get img_type i.e. .jpg
 							var img_type = names[i].slice(names[i].length - 4,names[i].length);
-							//remove img_type
+							//console.log("image extension:", img_type);
+
+							//remove img_type image.jpg -> image
 							names[i] = names[i].slice(0,names[i].length-4);
-							//add duplicate img tag
+							//console.log("removed extension:", names[i]);
+
+							//add a duplicate image tag
 							names[i] = names[i] + "(" + count + ")";
-							//console.log(names[i]);
-							//add img type
+							//console.log("duplicate tag added:", names[i]);
+
+							//add image extension
 							names[i] = names[i] + img_type;
-							//console.log(names[i]);
+							//console.log("image extension added:", names[i]);
 
 							count++;
 						}
 				} catch (e){
 					//do nothing
+					//console.log(names[i],"isn''t a duplicate");
 				}
 
-				count = 1;
+				count = 2;
 				zip.file(names[i], images[i], {base64: true});
 				zipped_images += 1;
-				console.log("zipped:", zipped_images, "total", total_images);
+				//console.log("zipped:", names[i], zipped_images, "total", total_images);
 
 			}
 
@@ -400,10 +398,11 @@ jQuery(function ($) {
 			var content = zip.generate({type:"blob"});
 
 			//display os save dialoge using FileSaver.js
+			//console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
 			saveAs(content, "gmail_images.zip");
 
 		} catch(e) {
-			//console.log(e)
+			console.log(e)
 		}
 
 	};
