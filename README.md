@@ -23,7 +23,7 @@ Offers Gmail users the ability to scan their mailbox for images and save/delete 
   * Save functionality breaks after the first save
     * Solution - This bug hasn't been explored in detail yet
 
-## Todo's (In order of importance)
+## Todo (In order of importance)
   - [ ] Display "Are you sure?" prompt to user prior deletion
   - [ ] Save feature - mentioned above
   - [ ] Create save progress bar - looks as if the app is broken, needs a progress bar
