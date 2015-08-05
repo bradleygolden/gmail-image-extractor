@@ -391,7 +391,7 @@ jQuery(function ($) {
 				count = 1;
 				zip.file(names[i], images[i], {base64: true});
 				zipped_images += 1;
-				//console.log("zipped:", zipped_images, "total", total_images);
+				console.log("zipped:", zipped_images, "total", total_images);
 
 			}
 

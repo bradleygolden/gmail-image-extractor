@@ -399,7 +399,7 @@ class GmailImageExtractor(object):
 
         return zf
 
-    def package_images(self, messages_to_save, callback=None):
+    def package_images(self, messages_to_save, callback=None, max_packet_size=10):
 
         def _cb(*args):
             if callback:
@@ -407,6 +407,7 @@ class GmailImageExtractor(object):
 
         encoded_images = []
         image_names = []
+        packet_size = 0
         images_packaged = 0
         global attachment_count
 
@@ -420,21 +421,23 @@ class GmailImageExtractor(object):
                 encoded_images.append(encoded_image)
                 # save image name
                 image_names.append(an_image.name())
+                packet_size += 1
                 images_packaged += 1
 
-                # send chunk of images to front-end
-                if images_packaged == 10:
-                    _cb("image-packet", encoded_images, image_names, images_packaged,
+                # packet of images to front-end
+                if packet_size == max_packet_size:
+                    _cb("image-packet", encoded_images, image_names, packet_size,
                         attachment_count)
                     encoded_images = []
                     image_names = []
-                    images_packaged = 0
+                    packet_size = 0
 
+                _cb("packet-progress", images_packaged, attachment_count)
                 print "packaged: %d, total: %d" % (images_packaged, attachment_count)
 
         # send remaining images
-        if images_packaged > 0:
-            _cb("image-packet", encoded_images, image_names, images_packaged, attachment_count)
+        if packet_size > 0:
+            _cb("image-packet", encoded_images, image_names, packet_size, attachment_count)
 
         return
 
