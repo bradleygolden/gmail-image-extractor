@@ -358,7 +358,7 @@ jQuery(function ($) {
 			for (var i = 0; i < images.length; i++)
 			{
 				try {
-						console.log(zip.file(names[i].name));
+						//console.log(zip.file(names[i].name));
 						while(zip.file(names[i]).name != null)
 						{
 							//file with that name already exists in the zip directory
@@ -465,7 +465,7 @@ jQuery(function ($) {
 			break;
 
 			case "image-packet":
-				//console.log(msg);
+				console.log(msg);
 				build_image_packets(msg.image_count, msg.total_images, msg.images, msg.image_names);
 			break;
 

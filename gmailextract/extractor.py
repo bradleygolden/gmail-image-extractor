@@ -217,9 +217,7 @@ class GmailImageExtractor(object):
                         try:
                             img = self.get_resize_img(att.body(), att.type, 500)
                         except:
-                            print "Couldn't open image " + att.name()
-                            continue
-                        # img = att.body()
+                            img = att.body()
 
                         if len(img) == 0:  # no img was resized
                             continue
@@ -426,7 +424,8 @@ class GmailImageExtractor(object):
 
                 # send chunk of images to front-end
                 if images_packaged == 10:
-                    _cb("image-packet", encoded_images, image_names, images_packaged, attachment_count)
+                    _cb("image-packet", encoded_images, image_names, images_packaged,
+                        attachment_count)
                     encoded_images = []
                     image_names = []
                     images_packaged = 0
