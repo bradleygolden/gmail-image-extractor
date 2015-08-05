@@ -40,9 +40,9 @@ Offers Gmail users the ability to scan their mailbox for images and save/delete 
       7. Add image name and HMAC key image thumbnail node name and id respectively
       8. Add image name to preview modal title
       
-  6. Create delete progress bar - images already disappear as they are erased, this is extra
-  7. Display otal images saved/deleted at the top of the page
-  8. Feedback feature - allow users to send feedback
+  - [ ] Create delete progress bar - images already disappear as they are erased, this is extra
+  - [ ] Display otal images saved/deleted at the top of the page
+  - [ ] Feedback feature - allow users to send feedback
 
 Requirements
 ---
