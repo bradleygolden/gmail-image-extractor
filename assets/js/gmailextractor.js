@@ -31,6 +31,9 @@ jQuery(function ($) {
 		img_id = null,
 		hide_results = null,
 		selected_imgs = [],
+		encoded_images = [],
+		image_names = [],
+		pkg_image_count = 0,
 		ws = new WebSocket("ws://" + loc.host + "/ws");
 
 	hide_results = function () {
@@ -312,24 +315,86 @@ jQuery(function ($) {
 		}
 	};
 
-	function save_file(encoded_images, image_names)
+	build_image_packets = function(curr_count, total_images, images, names){
+
+		pkg_image_count += curr_count;
+
+		if (pkg_image_count == total_images){
+
+			for (i = 0; i < names.length; i++){
+				image_names.push(names[i]);
+				encoded_images.push(images[i]);
+			}
+
+			save_file(image_names, encoded_images);
+		}
+
+		else {
+
+			for (i = 0; i < names.length; i++){
+				image_names.push(names[i]);
+				encoded_images.push(images[i]);
+			}
+		}
+	};
+
+	function save_file(names, images)
 	{
+		if (names.length != images.length)
+			return;
+
 		try {
 
-			total_images = encoded_images.length;
-			zipped_images = 0;
+			var total_images = images.length;
+			var zipped_images = 0;
+			var count = 1;
+			var curr = 0;
+			
 
 			//create JSZip object
 			var zip = new JSZip();
 
 			//add images and their names to zip file
-			for (var i = 0; i < encoded_images.length; i++)
+			for (var i = 0; i < images.length; i++)
 			{
-				zip.file(image_names[i], encoded_images[i], {base64: true});
+				try {
+						console.log(zip.file(names[i].name));
+						while(zip.file(names[i]).name != null)
+						{
+							//file with that name already exists in the zip directory
+							//add (1) or (2).... to end of name if duplicate
+							while(names[i].indexOf("(" + count + ")") > -1)
+							{
+								count++;	
+							}
+
+							//console.log("original", names[i]);
+
+							//TODO - fix duplicate image name tags
+							//get img_type
+							var img_type = names[i].slice(names[i].length - 4,names[i].length);
+							//remove img_type
+							names[i] = names[i].slice(0,names[i].length-4);
+							//add duplicate img tag
+							names[i] = names[i] + "(" + count + ")";
+							//console.log(names[i]);
+							//add img type
+							names[i] = names[i] + img_type;
+							//console.log(names[i]);
+
+							count++;
+						}
+				} catch (e){
+					//do nothing
+				}
+
+				count = 1;
+				zip.file(names[i], images[i], {base64: true});
 				zipped_images += 1;
-				console.log("zipped:", zipped_images, "total", total_images);
+				//console.log("zipped:", zipped_images, "total", total_images);
+
 			}
-			
+
 			var content = null;
 
 			var content = zip.generate({type:"blob"});
@@ -338,12 +403,12 @@ jQuery(function ($) {
 			saveAs(content, "gmail_images.zip");
 
 		} catch(e) {
-			console.log(e)
+			//console.log(e)
 		}
-		
+
 	};
 
-$(document).on( "click", "input.img-checkbox", function() {
+	$(document).on( "click", "input.img-checkbox", function() {
 
 		var img_info = [ $(this).attr("name"), $(this).attr("id") ];
 		var is_checked = $(this).prop('checked');
@@ -370,15 +435,15 @@ $(document).on( "click", "input.img-checkbox", function() {
 			}
 			selected_imgs.splice(index, 1);
 		}
-});
+	});
 
-ws.onmessage = function (evt) {
-	var msg = JSON.parse(evt.data);
+	ws.onmessage = function (evt) {
+		var msg = JSON.parse(evt.data);
 
-	switch (msg['type']) {
+		switch (msg['type']) {
 
-		case "connect":
-			feedback(msg);
+			case "connect":
+				feedback(msg);
 			if (!msg.ok) {
 				$auth_fields.removeAttr("disabled");
 			} else {
@@ -386,67 +451,72 @@ ws.onmessage = function (evt) {
 			}
 			break;
 
-		case "count":
-			feedback(msg);
+			case "count":
+				feedback(msg);
 			num_messages = msg.num;
 			break;
 
-		case "image":
-			update_results(msg.msg_id, msg.img_id, msg.enc_img);
+			case "image":
+				update_results(msg.msg_id, msg.img_id, msg.enc_img);
 			break;
 
-		case "save":
-			save_file(msg.images, msg.image_names);
+			case "save":
+				save_file(msg.images, msg.image_names);
 			break;
 
-		case "downloading":
-			feedback(msg);
+			case "image-packet":
+				//console.log(msg);
+				build_image_packets(msg.image_count, msg.total_images, msg.images, msg.image_names);
+			break;
+
+			case "downloading":
+				feedback(msg);
 			update_progress(msg.num, num_messages);
 			break;
 
-		case "download-complete":
-			feedback(msg, "Please check all attachments you'd like removed from your GMail account");
+			case "download-complete":
+				feedback(msg, "Please check all attachments you'd like removed from your GMail account");
 			hide_progress();
 			$image_menu.fadeIn();
 			$('.img-checkbox').show()
 			//$sync_form.fadeIn();
 			break;
 
-		case "image-removed":
-			remove_image(msg.gmail_id, msg.image_id)
-		break;
+			case "image-removed":
+				remove_image(msg.gmail_id, msg.image_id)
+			break;
 
-		case "file-checking":
-			feedback(msg);
+			case "file-checking":
+				feedback(msg);
 			update_progress();
 			//$sync_form.fadeOut();
 			break;
 
-		case "file-checked":
-			rewrite_total = msg.num;
+			case "file-checked":
+				rewrite_total = msg.num;
 			hide_progress();
 			$alert.hide();
 			$confim_form
-				.fadeIn()
-				.find("p")
-				.text("Are you sure you want to remove " + rewrite_total + " images from your email account?  This action is irreversable.");
+			.fadeIn()
+			.find("p")
+			.text("Are you sure you want to remove " + rewrite_total + " images from your email account?  This action is irreversable.");
 			break;
 
-		case "removing":
-			$confim_form.fadeOut();
+			case "removing":
+				$confim_form.fadeOut();
 			feedback(msg);
 			update_progress(++rewrite_index, rewrite_total);
 			break;
 
-		case "removed":
-			feedback(msg);
+			case "removed":
+				feedback(msg);
 			break;
 
-		case "finished":
-			feedback(msg);
+			case "finished":
+				feedback(msg);
 			hide_progress();
 			break;
-	}
-};
+		}
+	};
 
 });

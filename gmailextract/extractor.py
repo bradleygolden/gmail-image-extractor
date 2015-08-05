@@ -401,14 +401,20 @@ class GmailImageExtractor(object):
 
         return zf
 
-    def package_images(self, messages_to_save):
+    def package_images(self, messages_to_save, callback=None):
+
+        def _cb(*args):
+            if callback:
+                return callback(*args)
 
         encoded_images = []
         image_names = []
         images_packaged = 0
         global attachment_count
 
+        # loop through each message and extract attachments
         for message, some_images in messages_to_save.iteritems():
+            # loop through each image
             for an_image in some_images:
                 # encode the image
                 encoded_image = base64.b64encode(an_image.body())
@@ -417,9 +423,21 @@ class GmailImageExtractor(object):
                 # save image name
                 image_names.append(an_image.name())
                 images_packaged += 1
+
+                # send chunk of images to front-end
+                if images_packaged == 10:
+                    _cb("image-packet", encoded_images, image_names, images_packaged, attachment_count)
+                    encoded_images = []
+                    image_names = []
+                    images_packaged = 0
+
                 print "packaged: %d, total: %d" % (images_packaged, attachment_count)
 
-        return encoded_images, image_names
+        # send remaining images
+        if images_packaged > 0:
+            _cb("image-packet", encoded_images, image_names, images_packaged, attachment_count)
+
+        return
 
     def save(self, msg, callback=None):
         """Creates an array of images based on user's the user's selection.
@@ -429,7 +447,7 @@ class GmailImageExtractor(object):
             image_names --array of image names corresponding to packaged_images
         """
 
-        packaged_images = []
+        # packaged_images = []
 
         def _cb(*args):
             if callback:
@@ -441,8 +459,8 @@ class GmailImageExtractor(object):
             print("Couldn't parse selected images.")
 
         try:
-            packaged_images, image_names = self.package_images(messages)
-            _cb("save-passed", packaged_images, image_names)
+            self.package_images(messages, callback)
+            # _cb("save-passed", packaged_images, image_names)
 
         except:
             _cb("save_failed", [])
