@@ -13,8 +13,8 @@ cookie_secret = "SOMETHING RANDOM"
 base_url = "http://uchar6.cs.uic.edu"
 
 # Google provided OAuth2 credentials for completing oauth flow for IMAP access
-oauth2_client_id = "390031749073-bj4krr7fmupdhcju6ot989v4hoo3pqik.apps.googleusercontent.com"
-oauth2_client_secret = "Ho76AK4wskJx5Fj-3JJ0DEM5"
+oauth2_client_id = "clientid"
+oauth2_client_secret = "clientsecret"
 
 # The threshold, in seconds, when oauth tokens should be refreshed with google.
 # If an oauth token is within this many seconds of expiring it will be refreshed
