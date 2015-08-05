@@ -67,7 +67,7 @@ Current Bugs
 
 Todo (In order of importance)
 ---
-  - [ ] Display "Are you sure?" prompt to user prior deletion
+  - [x] Display "Are you sure?" prompt to user prior deletion
   - [ ] Save feature - mentioned above
   - [ ] Create save progress bar - looks as if the app is broken, needs a progress bar
   - [ ] Implement web logs for error tracking, etc.
