@@ -72,6 +72,7 @@ Todo (In order of importance)
   - [ ] Create save progress bar - looks as if the app is broken, needs a progress bar
   - [ ] Implement web logs for error tracking, etc.
   - [ ] Use HMAC to secure image information in front-end
+  - [ ] Implement Google's OAuth2.0
     * Currently each image is uniquely associated with an id. This id is the memory location in hex format of the image's respective gmail attachment object. The next step for improving security is to hash the id's using HMAC to gurentee secured unqiue id's. The algorithm will look like the following:
 
       1. Get hex value of memory location from attachment [image id]
