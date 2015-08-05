@@ -1,11 +1,11 @@
 jQuery(function ($) {
 
 	var prog_hidden = true,
-		results_hidden = true, //added
+		results_hidden = true,
 		loc = window.location,
 		$prog_container = $(".progress"),
 		$prog = $(".progress-bar"),
-		$results_container = $(".results"), //added
+		$results_container = $(".results"),
 		$email = $("#email"),
 		$pass = $("#password"),
 		$submit = $("#submit"),
@@ -16,23 +16,27 @@ jQuery(function ($) {
 		$confim_form = $("#confirm-form"),
 		$no_confirm_bttn = $confim_form.find("[type=cancel]"),
 		$delete = $("#delete"),
+		$delete_modal = $("#delete-modal"),
 		$select_all = $("#select-all"),
 		select_bool = false,
 		$image_menu = $("#image-menu"),
 		$save = $("#save"),
+		$input = $("#input"),
 		rewrite_index = null,
 		rewrite_total = null,
 		feedback = null,
 		num_messages = null,
 		update_progress = null,
 		hide_progress = null,
-		update_results = null, //added 
+		update_results = null,
 		img_id = null,
-		hide_results = null, //added
+		hide_results = null,
 		selected_imgs = [],
+		encoded_images = [],
+		image_names = [],
+		pkg_image_count = 0,
 		ws = new WebSocket("ws://" + loc.host + "/ws");
 
-	//added
 	hide_results = function () {
 
 		$results_container.fadeOut();
@@ -40,7 +44,7 @@ jQuery(function ($) {
 	};
 
 	//displays images in the browser as they are found in the users mailbox
-	update_results = function (msg_id, img_id, enc_img, signed_req) {
+	update_results = function (msg_id, img_id, enc_img) {
 
 		if (results_hidden) {
 
@@ -55,14 +59,14 @@ jQuery(function ($) {
 		//create thumbnail for image to be displayed in
 		//create a unique img_id for the purpose of selecting each image
 		$results_container.append('<div class="col-xs-6 col-md-3">' + 
-								  '<div class="thumbnail">' +
-								  '<input class="img-checkbox" id="' + img_id + 
-								  '" name="' + signed_req + '" type="checkbox">' +
-								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
-								  '<img src="' + img.src + '">' + 
-								  '</a>' +
-								  '</div>' + 
-								  '</div>');
+								'<div class="thumbnail">' +
+								'<input class="img-checkbox" id="' + img_id + 
+								'" name="' + msg_id + '" type="checkbox" style="display:none;"">' +
+								'<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
+								'<img src="' + img.src + '">' + 
+								'</a>' +
+								'</div>' +
+								'</div>');
 	};
 
 	hide_progress = function () {
@@ -133,26 +137,28 @@ jQuery(function ($) {
 		});
 	};
 
-	//TODO - select all doesn't select images in the correct format
 	$select_all.click(function(){
 
-		this.addClass("disabled");
-
-		var img_id = [];
+		//this.addClass("disabled");
 
 		//select all inputs if not selected
 		if(select_bool === false){
 
-			$("input.img-checkbox").prop("checked", true);	
+			//clear all selected images first
+			selected_imgs = []
 
+			//push all images to selected_imgs array
 			$("input.img-checkbox").each(function(){
-				img_id.push([$(this).attr("name"), $(this).attr("id")]); 
+				//set property of each checkbox to checked
+				$(this).prop('checked', true);
+
+				var img_info = [$(this).attr("name"), $(this).attr("id")];
+				
+				//push selected images to selected images array
+				selected_imgs.push(img_info);
 			}); 
 
 			select_bool = true;
-
-			//push all selected images to selected images array
-			selected_imgs.push(img_id);
 
 			//change name of button to deselect all
 			$("#select-all").text("Deselect All");
@@ -162,7 +168,11 @@ jQuery(function ($) {
 		//deselect all inputs if selected
 		else {
 
-			$("input").prop("checked", false);	
+			$("input.img-checkbox").each(function(){
+				//set property of each checkbox to checked
+				$(this).prop("checked", false);	
+			});
+
 			select_bool = false;
 
 			//pop all selected images in selected images array
@@ -174,9 +184,9 @@ jQuery(function ($) {
 		//change delete button state
 		num_checked = count_checked();
 		changeBtnState(num_checked, "delete");
-		// changeBtnState(num_checked, "save");
+		changeBtnState(num_checked, "save");
 	});
-
+	
 	//on click sends selected images to server to retreive full sized images
 	$save.click(function(){
 
@@ -193,7 +203,8 @@ jQuery(function ($) {
 	});
 
 	//sends currently selected images to the backend for removal
-	$delete.click(function () {
+	//closes delete modal
+	$delete_modal.click(function () {
 
 		var params = JSON.stringify({
 			"type" : "delete",
@@ -202,6 +213,7 @@ jQuery(function ($) {
 
 		ws.send(params);
 
+		$("#deleteModal").modal('hide');
 	});
 
 	$auth_form.submit(function () {
@@ -291,40 +303,118 @@ jQuery(function ($) {
 		}
 	};
 
-	function save_file(encoded_images, image_names)
+	remove_image = function(gmail_id, image_id){
+
+		var $image_thumbnail = $('#' + image_id);
+
+		if($image_thumbnail.attr('id') === image_id && $image_thumbnail.attr('name') === gmail_id){
+
+			//delete image thumbnail
+			$image_thumbnail.parents('div').eq(1).remove();
+		}
+		else{
+
+		}
+	};
+
+	build_image_packets = function(curr_count, total_images, images, names){
+
+		pkg_image_count += curr_count;
+
+		if (pkg_image_count == total_images){
+
+			for (i = 0; i < names.length; i++){
+				image_names.push(names[i]);
+				encoded_images.push(images[i]);
+			}
+
+			save_file(image_names, encoded_images);
+		}
+
+		else {
+
+			for (i = 0; i < names.length; i++){
+				image_names.push(names[i]);
+				encoded_images.push(images[i]);
+			}
+		}
+	};
+
+	function save_file(names, images)
 	{
+		if (names.length != images.length)
+			return;
+
 		try {
+
+			var total_images = images.length;
+			var zipped_images = 0;
+			var count = 2;
+			var prev = count;
+			var duplicate_tag = "";
+			
 
 			//create JSZip object
 			var zip = new JSZip();
 
 			//add images and their names to zip file
-			for (var i = 0; i < encoded_images.length; i++)
+			for (var i = 0; i < images.length; i++)
 			{
-				zip.file(image_names[i], encoded_images[i], {base64: true});
+				try {
+						//manange duplicate images
+						while(zip.file(names[i]).name != null)
+						{
+							//console.log("duplicate image exists:", names[i]);
+							//get img_type i.e. .jpg
+							var img_type = names[i].slice(names[i].length - 4,names[i].length);
+							//console.log("image extension:", img_type);
+
+							//remove img_type image.jpg -> image
+							names[i] = names[i].slice(0,names[i].length-4);
+							//console.log("removed extension:", names[i]);
+
+							//add a duplicate image tag
+							names[i] = names[i] + "(" + count + ")";
+							//console.log("duplicate tag added:", names[i]);
+
+							//add image extension
+							names[i] = names[i] + img_type;
+							//console.log("image extension added:", names[i]);
+
+							count++;
+						}
+				} catch (e){
+					//do nothing
+					//console.log(names[i],"isn''t a duplicate");
+				}
+
+				count = 2;
+				zip.file(names[i], images[i], {base64: true});
+				zipped_images += 1;
+				//console.log("zipped:", names[i], zipped_images, "total", total_images);
+
 			}
-			
+
 			var content = null;
 
 			var content = zip.generate({type:"blob"});
 
 			//display os save dialoge using FileSaver.js
+			//console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
 			saveAs(content, "gmail_images.zip");
 
 		} catch(e) {
 			console.log(e)
 		}
-		
+
 	};
 
-/* 
- * Adds the signed hmac key to an array
- */
-$(document).on( "click", "input.img-checkbox", function() {
+	$(document).on( "click", "input.img-checkbox", function() {
 
-		var img_id = [ $(this).attr("name"), $(this).attr("id") ];
+		var img_info = [ $(this).attr("name"), $(this).attr("id") ];
 		var is_checked = $(this).prop('checked');
 		var num_checked = count_checked();
+		var select_bool = false;
 
 		changeBtnState(num_checked, "delete");
 		changeBtnState(num_checked, "save");
@@ -332,23 +422,29 @@ $(document).on( "click", "input.img-checkbox", function() {
 		//checkbox is clicked, save filename in an array
 		if(is_checked){
 
-		selected_imgs.push(img_id);
+			selected_imgs.push(img_info);
 		}
+
 		//checkbox is unclicked, remove filename from the array
 		else {
 
-		var index = selected_imgs.indexOf(img_id); 
-		selected_imgs.splice(index, 1);
+			var index = -1; 
+			for (i=0; i<selected_imgs.length; i++){
+				if (selected_imgs[i][1].localeCompare(img_info[1]) === 0){
+					index = i
+				}
+			}
+			selected_imgs.splice(index, 1);
 		}
-		});
+	});
 
-ws.onmessage = function (evt) {
-	var msg = JSON.parse(evt.data);
+	ws.onmessage = function (evt) {
+		var msg = JSON.parse(evt.data);
 
-	switch (msg['type']) {
+		switch (msg['type']) {
 
-		case "connect":
-			feedback(msg);
+			case "connect":
+				feedback(msg);
 			if (!msg.ok) {
 				$auth_fields.removeAttr("disabled");
 			} else {
@@ -356,62 +452,72 @@ ws.onmessage = function (evt) {
 			}
 			break;
 
-		case "count":
-			feedback(msg);
+			case "count":
+				feedback(msg);
 			num_messages = msg.num;
 			break;
 
-		case "image": //added
-			$image_menu.fadeIn();
-			update_results(msg.msg_id, msg.img_id, msg.enc_img, msg.hmac_key);
+			case "image":
+				update_results(msg.msg_id, msg.img_id, msg.enc_img);
 			break;
 
-		case "save":
-			save_file(msg.images, msg.image_names);
+			case "save":
+				save_file(msg.images, msg.image_names);
 			break;
 
-		case "downloading":
-			feedback(msg);
+			case "image-packet":
+				console.log(msg);
+				build_image_packets(msg.image_count, msg.total_images, msg.images, msg.image_names);
+			break;
+
+			case "downloading":
+				feedback(msg);
 			update_progress(msg.num, num_messages);
 			break;
 
-		case "download-complete":
-			feedback(msg, "Please check all attachments you'd like removed from your GMail account");
+			case "download-complete":
+				feedback(msg, "Please check all attachments you'd like removed from your GMail account");
 			hide_progress();
+			$image_menu.fadeIn();
+			$('.img-checkbox').show()
 			//$sync_form.fadeIn();
 			break;
 
-		case "file-checking":
-			feedback(msg);
+			case "image-removed":
+				remove_image(msg.gmail_id, msg.image_id)
+			break;
+
+			case "file-checking":
+				feedback(msg);
 			update_progress();
 			//$sync_form.fadeOut();
 			break;
 
-		case "file-checked":
-			rewrite_total = msg.num;
+			case "file-checked":
+				rewrite_total = msg.num;
 			hide_progress();
 			$alert.hide();
 			$confim_form
-				.fadeIn()
-				.find("p")
-				.text("Are you sure you want to remove " + rewrite_total + " images from your email account?  This action is irreversable.");
+			.fadeIn()
+			.find("p")
+			.text("Are you sure you want to remove " + rewrite_total + " images from your email account?  This action is irreversable.");
 			break;
 
-		case "removing":
-			$confim_form.fadeOut();
+			case "removing":
+				$confim_form.fadeOut();
 			feedback(msg);
 			update_progress(++rewrite_index, rewrite_total);
 			break;
 
-		case "removed":
-			feedback(msg);
+			case "removed":
+				feedback(msg);
 			break;
 
-		case "finished":
-			feedback(msg);
+			case "finished":
+				feedback(msg);
 			hide_progress();
 			break;
-	}
-};
+		}
+	};
 
 });

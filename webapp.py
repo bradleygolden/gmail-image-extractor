@@ -77,8 +77,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "type": "image",
                                         "msg_id": args[1],
                                         "img_id": args[2],
-                                        "enc_img": args[3],
-                                        "hmac_key": args[4]})
+                                        "enc_img": args[3]})
 
                 if args[0] == 'message':
                     status_msg = u"Fetching messages {1} - {2}".format(msg['simultaneous'],
@@ -101,18 +100,15 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         def _delete_status(*args):
             update_type = args[0]
 
-            print(u"Removed {0} out of {1} {2}."
-                  "".format(args[1],
-                            args[2],
-                            plural(u"image", args[2])))
-
-            if update_type == "deleted":
+            if update_type == "image-removed":
                 self.write_message({"ok": True,
-                                    "type": "removed",
+                                    "type": "image-removed",
                                     "msg": u"Removed {0} out of {1} {2}."
                                     "".format(args[1],
                                               args[2],
-                                              plural(u"image", args[2]))})
+                                              plural(u"image", args[2])),
+                                    "gmail_id": args[3],
+                                    "image_id": args[4]})
 
         num_messages_changed, num_images_deleted = extractor.delete(msg, callback=_delete_status)
         self.write_message({"ok": True,
@@ -128,6 +124,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         def _save_status(*args):
             update_type = args[0]
+            if update_type == "image-packet":
+                self.write_message({"ok": True,
+                                    "type": "image-packet",
+                                    "images": args[1],
+                                    "image_names": args[2],
+                                    "image_count": args[3],
+                                    "total_images": args[4]})
+
             if update_type == "save-passed":
                 self.write_message({"ok": True,
                                     "type": "save",

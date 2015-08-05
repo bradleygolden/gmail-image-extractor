@@ -1,6 +1,6 @@
 import os
 import config
-# import PIL
+import PIL
 from PIL import Image
 import StringIO
 from hashlib import sha256
@@ -13,6 +13,7 @@ import zipfile
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
+attachment_count = 0
 
 
 class GmailImageExtractor(object):
@@ -87,7 +88,7 @@ class GmailImageExtractor(object):
 
         return hashed.digest().encode("base64").rstrip('\n')
 
-    def get_resize_img(self, img, img_type, basewidth=100, supported_formats=('jpeg', 'gif',
+    def get_resize_img(self, img, img_type, basewidth=300, supported_formats=('jpeg', 'gif',
                                                                               'png')):
         """Constrains proportions of an image object. The max width and support image formats are
         predefined by this function by default.
@@ -99,15 +100,15 @@ class GmailImageExtractor(object):
         img_type = img_type.split("/")[1]
 
         if img_type in supported_formats:
-            buffer = StringIO.StringIO()
-            img_object = Image.open(StringIO.StringIO(img))
-            wpercent = (basewidth / float(img_object.size[0]))
-            hsize = int((float(img_object.size[1]) * float(wpercent)))
-            img = img_object.resize((basewidth, hsize), Image.NEAREST)
-            format = img_type
-            img_object.save(buffer, format)
+            img_buffer = StringIO.StringIO()
+            img = Image.open(StringIO.StringIO(img))
+            wpercent = (basewidth / float(img.size[0]))
+            hsize = int((float(img.size[1]) * float(wpercent)))
+            img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+            img_format = img_type
+            img.save(img_buffer, img_format)
 
-            return buffer.getvalue()
+            return img_buffer.getvalue()
         else:
             return ""
 
@@ -172,6 +173,7 @@ class GmailImageExtractor(object):
             if callback:
                 callback(*args)
 
+        global attachment_count
         attachment_count = 0
         num_messages = 0
         offset = 0
@@ -197,12 +199,25 @@ class GmailImageExtractor(object):
 
                         # STEP 2 - Note: unique gmail_id for each message
                         msg_id = msg.gmail_id
-                        img_identifier = att.sha1()
+
+                        # unique id for each attachment
+                        # uses the attachment's hex memory value
+                        img_identifier = hex(id(att))
+
+                        # create map to use later for linking
+                        # each message with each attachment
+                        if img_identifier in self.mapping:
+                            self.mapping[msg_id].append(msg)
+                        else:
+                            self.mapping[msg_id] = [msg]
 
                         # STEP 3 - Scale down images and encode into base64
 
                         # Scale down image before encoding
-                        img = self.get_resize_img(att.body(), att.type, 100, ('png', 'gif'))
+                        try:
+                            img = self.get_resize_img(att.body(), att.type, 500)
+                        except:
+                            img = att.body()
 
                         if len(img) == 0:  # no img was resized
                             continue
@@ -221,7 +236,7 @@ class GmailImageExtractor(object):
                         #          --hmac: autheticated hash
                         # _cb('image', msg_id, img_identifier, encoded_img, hmac_req)
 
-                        _cb('image', msg_id, img_identifier, encoded_img, msg_id)
+                        _cb('image', msg_id, img_identifier, encoded_img)
 
                         attachment_count += 1
                         num_messages += 1
@@ -233,6 +248,32 @@ class GmailImageExtractor(object):
             offset += per_page
 
         return attachment_count
+
+    def order_by_g_id(self, selected_images):
+        ordered_by_g_id = dict()
+
+        for gmail_id, an_attachment in selected_images['image']:
+                if gmail_id in ordered_by_g_id:
+                    ordered_by_g_id[gmail_id].append(an_attachment)
+                else:
+                    ordered_by_g_id[gmail_id] = [an_attachment]
+
+        return ordered_by_g_id
+
+    def replace_att_id(self, ordered_by_gmail_id):
+        messages_to_change = dict()
+
+        for gmail_id in ordered_by_gmail_id:
+            message_to_change = self.mapping[gmail_id][0]
+            attach_ids = {hex(id(a)): a for a in message_to_change.attachments()}
+
+            for an_attachment in ordered_by_gmail_id[gmail_id]:
+                if gmail_id in messages_to_change:
+                    messages_to_change[gmail_id].append(attach_ids[an_attachment])
+                else:
+                    messages_to_change[gmail_id] = [attach_ids[an_attachment]]
+
+        return messages_to_change
 
     def parse_selected_images(self, selected_images):
         """Takes in a dictionary message containing both unique message
@@ -249,26 +290,14 @@ class GmailImageExtractor(object):
         """
 
         ordered_by_gmail_id = dict()
-        messages_to_change = dict()
 
         # first group and order selected images by gmail_id and attachment_id
-        for gmail_id, an_attachment in selected_images['image']:
-                if gmail_id in ordered_by_gmail_id:
-                    ordered_by_gmail_id[gmail_id].append(an_attachment)
-                else:
-                    ordered_by_gmail_id[gmail_id] = [an_attachment]
+        ordered_by_gmail_id = self.order_by_g_id(selected_images)
 
         # replace attachment_id with attachment object from message with corresponding gmail_id
-        for gmail_id in ordered_by_gmail_id:
-            message_to_change = self.inbox.fetch_gm_id(gmail_id, full=True)
-            attach_hashes = {a.sha1(): a for a in message_to_change.attachments()}
-            for an_attachment in ordered_by_gmail_id[gmail_id]:
-                if gmail_id in messages_to_change:
-                    messages_to_change[gmail_id].append(attach_hashes[an_attachment])
-                else:
-                    messages_to_change[gmail_id] = [attach_hashes[an_attachment]]
+        parsed_selected = self.replace_att_id(ordered_by_gmail_id)
 
-        return messages_to_change
+        return parsed_selected
 
     def do_delete(self, messages_to_change, callback=None):
         """
@@ -285,6 +314,7 @@ class GmailImageExtractor(object):
 
         num_images_deleted = 0
         num_images_to_delete = 0
+        image_id = ""
 
         # calculate total images that need to be deleted
         for message, some_images in messages_to_change.iteritems():
@@ -299,9 +329,11 @@ class GmailImageExtractor(object):
 
         for gmail_id, some_attachments in messages_to_change.iteritems():
             for an_attachment in some_attachments:
-                an_attachment.remove()
-                num_images_deleted += 1
-                _cb('removed', num_images_deleted, num_images_to_delete)
+                image_id = hex(id(an_attachment))
+                if an_attachment.remove():
+                    num_images_deleted += 1
+                    _cb('image-removed', num_images_deleted, num_images_to_delete, gmail_id,
+                        image_id)
             some_attachments[0].message.save(self.trash_folder.name, safe_label=label)
             num_messages_changed += 1
 
@@ -336,10 +368,12 @@ class GmailImageExtractor(object):
             if callback:
                 callback(*args)
 
+        messages = {}
+
         try:
             messages = self.parse_selected_images(msg)
         except:
-            print("Couldn't parse selected images.")
+            print "Couldn't parse selected images."
 
         num_messages_changed, num_images_deleted = self.do_delete(messages, callback)
 
@@ -365,12 +399,21 @@ class GmailImageExtractor(object):
 
         return zf
 
-    def package_images(self, messages_to_save):
+    def package_images(self, messages_to_save, callback=None, max_packet_size=10):
+
+        def _cb(*args):
+            if callback:
+                return callback(*args)
 
         encoded_images = []
         image_names = []
+        packet_size = 0
+        images_packaged = 0
+        global attachment_count
 
+        # loop through each message and extract attachments
         for message, some_images in messages_to_save.iteritems():
+            # loop through each image
             for an_image in some_images:
                 # encode the image
                 encoded_image = base64.b64encode(an_image.body())
@@ -378,8 +421,25 @@ class GmailImageExtractor(object):
                 encoded_images.append(encoded_image)
                 # save image name
                 image_names.append(an_image.name())
+                packet_size += 1
+                images_packaged += 1
 
-        return encoded_images, image_names
+                # packet of images to front-end
+                if packet_size == max_packet_size:
+                    _cb("image-packet", encoded_images, image_names, packet_size,
+                        attachment_count)
+                    encoded_images = []
+                    image_names = []
+                    packet_size = 0
+
+                _cb("packet-progress", images_packaged, attachment_count)
+                print "packaged: %d, total: %d" % (images_packaged, attachment_count)
+
+        # send remaining images
+        if packet_size > 0:
+            _cb("image-packet", encoded_images, image_names, packet_size, attachment_count)
+
+        return
 
     def save(self, msg, callback=None):
         """Creates an array of images based on user's the user's selection.
@@ -389,7 +449,7 @@ class GmailImageExtractor(object):
             image_names --array of image names corresponding to packaged_images
         """
 
-        packaged_images = []
+        # packaged_images = []
 
         def _cb(*args):
             if callback:
@@ -401,8 +461,8 @@ class GmailImageExtractor(object):
             print("Couldn't parse selected images.")
 
         try:
-            packaged_images, image_names = self.package_images(messages)
-            _cb("save-passed", packaged_images, image_names)
+            self.package_images(messages, callback)
+            # _cb("save-passed", packaged_images, image_names)
 
         except:
             _cb("save_failed", [])
