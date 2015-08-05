@@ -16,6 +16,7 @@ jQuery(function ($) {
 		$confim_form = $("#confirm-form"),
 		$no_confirm_bttn = $confim_form.find("[type=cancel]"),
 		$delete = $("#delete"),
+		$delete_modal = $("#delete-modal"),
 		$select_all = $("#select-all"),
 		select_bool = false,
 		$image_menu = $("#image-menu"),
@@ -136,7 +137,6 @@ jQuery(function ($) {
 		});
 	};
 
-	//TODO - select all doesn't select images in the correct format
 	$select_all.click(function(){
 
 		//this.addClass("disabled");
@@ -203,7 +203,8 @@ jQuery(function ($) {
 	});
 
 	//sends currently selected images to the backend for removal
-	$delete.click(function () {
+	//closes delete modal
+	$delete_modal.click(function () {
 
 		var params = JSON.stringify({
 			"type" : "delete",
@@ -212,6 +213,7 @@ jQuery(function ($) {
 
 		ws.send(params);
 
+		$("#deleteModal").modal('hide');
 	});
 
 	$auth_form.submit(function () {

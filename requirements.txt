@@ -4,6 +4,7 @@ google-api-python-client==1.4.1
 httplib2==0.9.1
 imaplib2==2.45.0
 oauth2client==1.4.11
+PIL==1.1.7
 pyasn1==0.1.7
 pyasn1-modules==0.0.5
 -e git+git@github.com:snyderp/pygmail.git@0e05ef8aea151ad3da96060c97fbbaad49395089#egg=pygmail-master

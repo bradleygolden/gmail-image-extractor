@@ -51,24 +51,25 @@ home: "{{ home_dir }}"
     <div class="btn-group" role="group" aria-label="...">
       <button id="select-all" class="btn btn-default">Select All</button>
       <button type="button" id ="save" class="btn btn-default disabled">Save Image</button>
-      <button id="delete" class="btn btn-default disabled">Delete Image</button>
+      <button id="delete" data-toggle="modal" data-target="#deleteModal" class="btn btn-default disabled">Delete Image</button>
       <!--<button id="stop" class="btn btn-default disabled">Stop</button>-->
     </div>
     <hr />
   </div>
 
-  <!-- save modal -->
-  <div id="saveModal" class="modal fade">
+  <!-- delete modal -->
+  <div id="deleteModal" class="modal fade">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title">Oops&hellip;</h4>
+          <h4 class="modal-title">Warning</h4>
         </div>
         <div class="modal-body">
-          <p>You must select an image first before you can save anything</p>
+          <p>The selected images will be deleted permanenetly from your inbox. Are you sure you want to proceed?</p>
         </div>
         <div class="modal-footer">
+          <button id="delete-modal" class="btn btn-danger">Delete</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div><!-- /.modal-content -->
