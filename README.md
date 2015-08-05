@@ -8,34 +8,34 @@ Installation
 ---
 Install Virtualenv
 ```
-pip install virtualenv
+$ pip install virtualenv
 ```
 
 Make a project directory using Virtualenv
 ```
-virtualenv gmail-image-extractor
+$ virtualenv gmail-image-extractor
 ```
 
 Clone this repo in the project directory
 ```
-cd gmail-image-extractor
-git clone https://github.com/bradleygolden/gmail-image-extractor.git
+$ cd gmail-image-extractor
+$ git clone https://github.com/bradleygolden/gmail-image-extractor.git
 ```
 
 Enter virtualenv
 ```
-source bin/activate
+$ source bin/activate
 ```
 
 Install dependencies
 ```
-cd gmail-image-extractor
-pip install -r requirements.txt
+$ cd gmail-image-extractor
+$ pip install -r requirements.txt
 ```
 
 Run the server
 ```
-python webapp.py
+$ python webapp.py
 ```
 
 Checkout the app at
