@@ -23,8 +23,8 @@ Individual mail messages are loaded from the user's Gmail account and each messa
 Extracting and Sending Images to the Front End:
 Each attachment contains an attachment body in the following formats: jpg, png, and gif format. The current extractor uses each image body to display the attachment to the user. This is done by first reducing the image size to increase overall performance, encoding the image to a base64 string and sending the image body to the front end via web sockets. The front end then uses the unique id of the image and the base64 string to display the image to the user.
 
-Deleting Images from the UserÕs Account:
-The user has the option to select various images through Gmail Image ExtractorÕs front-end interface. After all images selected for removal have been verified by the user, corresponding unique image idÕs and message idÕs are sent to the back-end. The back-end sorts each message into a list of attachments and then removes each selected attachment where the message id and image id match the userÕs selection. The removal of each message is accomplished through the pygmail module.
+Deleting Images from the User's Account:
+The user has the option to select various images through Gmail Image Extractor's front-end interface. After all images selected for removal have been verified by the user, corresponding unique image ids and message ids are sent to the back-end. The back-end sorts each message into a list of attachments and then removes each selected attachment where the message id and image id match the userÕs selection. The removal of each message is accomplished through the pygmail module.
  
 Results (As of 8/6/2015)
 -------
@@ -33,7 +33,7 @@ Gmail-Image-Extractor currently allows users to login and scan their inbox for i
 
 This scan accounts for the following outlier cases: duplicate image names, duplicate image types, and images of extreme size both small and large. However, there may be cases that have not been explored and further testing is needed to ensure those cases are managed effectively.
 
-Gmail-Image-Extractor successfully deletes images from the userÕs account according to the cases mentioned above. 
+Gmail-Image-Extractor successfully deletes images from the user's account according to the cases mentioned above. 
 
 Gmail-Image-Extractor does not currently have a working option to save images. This feature will ideally allow the user to save all selected images within a zip file. Some considerations must be taken when introducing this feature. Some include the type of browser the client is using and the size of the resulting selection of images.
 
