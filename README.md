@@ -86,20 +86,21 @@ Credits and Acknowledgements
 Known Bugs
 ------------
 
-###### Save functionality - Broken
+##### Save functionality - Broken
 
 *This feature is ridden with issues*
-  
-  **Current solution**
 
-  * I originally tried to send all of the images in packets of 10 via web sockets to the front-end where the front-end combines the packets and puts them in one large zip file. The user can then choose where to download that file. This works intermittently depending on the browser being used and the file size. This doesn't work for large data sets generally 500mb or more. This method makes the solution to the problem difficult.
+###### Current solution
+
+* I originally tried to send all of the images in packets of 10 via web sockets to the front-end where the front-end combines the packets and puts them in one large zip file. The user can then choose where to download that file. This works intermittently depending on the browser being used and the file size. This doesn't work for large data sets generally 500mb or more. This method makes the solution to the problem difficult.
     
-  **Next solution**
+###### Next solution
+    
+* Create zip file on the server side, save it, and send file to front-end. File size will have to be limited roughly 400mb
+    
+* For larger image sets, the solution is still unknown...
 
-    * Create zip file on the server side, save it, and send file to front-end. File size will have to be limited roughly 400mb
-    * For larger image sets, the solution is still unknown...
-
-###### Other bugs
+##### Other bugs
 
   * The server does not allow for multiple users to run the image extractor at the same time.
     * Solution - Allow the server to run asynchronously
