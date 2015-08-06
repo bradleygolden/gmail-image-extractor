@@ -90,7 +90,7 @@ Known Bugs
 
 *This feature is ridden with issues*
 
-###### Current solution
+###### Current non-working solution
 
 * I originally tried to send all of the images in packets of 10 via web sockets to the front-end where the front-end combines the packets and puts them in one large zip file. The user can then choose where to download that file. This works intermittently depending on the browser being used and the file size. This doesn't work for large data sets generally 500mb or more. This method makes the solution to the problem difficult.
     
@@ -103,11 +103,11 @@ Known Bugs
 ##### Other bugs
 
   * The server does not allow for multiple users to run the image extractor at the same time.
-    * Solution - Allow the server to run asynchronously
+    * **Solution - Allow the server to run asynchronously**
   * Gmails security settings make it difficult to access gmail account without manually changing settings in google's security console (this is a tricky process)
-    * Solution - OAuth 2.0
+    * **Solution - OAuth 2.0**
   * Save functionality breaks after the first save
-    * Solution - This bug hasn't been explored in detail yet
+    * **Solution - This bug hasn't been explored in detail yet**
 
 Upcoming Features
 -----------------
