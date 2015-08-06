@@ -10,7 +10,7 @@ This is version is unstable.  Please do not use unless you are familiar with wha
 
 Usage
 -----
-To use this program, follow the installation instructions below and login using your gmail account information. You will most likely need to lower your [gmail account security settings](https://myaccount.google.com/security). After logging in, this program will scan your gmail account for gif's png's and jpg's and populate them on a web interface. You will then have the option to save and delete those images from your gmail account.
+To use this program, follow the installation instructions below and login using your gmail account information. You will most likely need to lower your [gmail account security settings](https://myaccount.google.com/security). After logging in, this program will scan your gmail account for gif's, png's, and jpg's and populate them using a web interface. You will then have the option to save and delete those images from your gmail account through this interface.
 
 Installation and Configuration
 ------------------------------
@@ -67,7 +67,7 @@ Contributing
 
 About the Project
 -----------------
-Gmail Image Extractor is an open source web application that is focused on providing users an alternative to efficiently manage their gmail accounts. Currently gmail accounts offer over 100 gigabytes of storage which allows most users the freedom to archive emails without the conern of deleting them permanently. These archived emails may contain various attachments including images. Some of those images may be private, contain sensitive information, or have personal value. This application gives users the ability to save and remove those images if they so choose.
+Gmail Image Extractor is an open source web application that is focused on providing users an alternative to efficiently managing their gmail accounts. Currently gmail accounts offer over 100 gigabytes of storage. This allows most users the freedom to archive emails without the concern of deleting them permanently. These archived emails may contain various attachments including images and ome of those images may be private, contain sensitive information, or have personal value. This application gives users the ability to save and remove those images if they so choose.
 
 License
 -------
@@ -75,7 +75,7 @@ Please see the file called [License](https://github.com/bradleygolden/gmail-imag
 
 Contact
 -------
-golden.bradley@gmail.com
+**Bradley Golden** - golden.bradley@gmail.com - https://bradleygolden.github.io
 
 Credits and Acknowledgements
 ----------------------------
@@ -104,8 +104,8 @@ Known Bugs
   * Save functionality breaks after the first save
     * Solution - This bug hasn't been explored in detail yet
 
-Todo (In order of importance)
-----
+Upcoming Features
+-----------------
   - [x] Display "Are you sure?" prompt to user prior deletion
   - [ ] Save feature - mentioned above
   - [ ] Create save progress bar - looks as if the app is broken, needs a progress bar
