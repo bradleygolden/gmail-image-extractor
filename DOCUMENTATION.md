@@ -1,16 +1,19 @@
 Intro
 -----
 
-Email clients are offering larger and larger storage space for emails as time progresses. Currently, Gmail offers 100 gigabytes of space for their users and this figure is growing each year. As Gmail's storage limit increases, many consumers continue to archive emails for various reasons including saving for later use. Among these saved emails, many may contain images that have sentimental value, contain personal information, and more. The existence of these images also provides opportunities for hackers to exploit users unknowingly.  Therefore, it's important to provide gmail users with tools to effectively manage their email account for the purpose of increasing security and the awareness of the data that exists within their accounts. Gmail Image Extractor is the current solution for providing users the access to secure photo attachments in one easy location. Gmail Image Extractor requires no extra login information then their pre-existing email account information and is completely web based for ease of use.
+Email clients are offering larger and larger storage space for emails as time progresses. Currently, Gmail offers 100 gigabytes of space for their users and this figure is growing each year. As Gmail's storage limit increases, many consumers continue to archive emails for various reasons, resulting in thousands of old and forgetten emails. Among these emails, many may contain images that have sentimental value, contain personal information, and more. The existence of these images also provides opportunities for hackers to exploit users unknowingly.  Therefore, it's important to provide gmail users with tools to effectively manage their email account for the purpose of increasing security and the awareness of the data that exists within their accounts. Gmail Image Extractor is the current solution for providing users the access to secure photo attachments in one easy location. Gmail Image Extractor requires no extra login information then their pre-existing email account information and is completely web based for ease of use.
 
 Related Work
 ------------
+
+Other related projects can be found below. This program is currently stand alone, however it will be merged with Cloudsweeper to further increase the scope of email management tools available to gmail users in one location.
 
 - Cloudsweeper, a web application that provides Gmail users with tools to secure their Gmail accounts. More information can be found here: https://cloudsweeper.cs.uic.edu/ 
 - AttachmentExtractor for Thunderbird extracts attachments from emails and allows users to delete, detach, or mark the messages as read. More information can be found here: https://addons.mozilla.org/en-US/thunderbird/addon/attachmentextractor/
 - Mail Attachment Downloader for Windows has many options, including the ability to download and delete attachments from emails. More information can be found here: http://gearmage.com/maildownloader.html
 - Save Emails and Attachments for Google Sheets has the option to download images and varying attachments from Gmail to Google Drive. More information can be found here: https://chrome.google.com/webstore/detail/save-emails-and-attachmen/nflmnfjphdbeagnilbihcodcophecebc?hl=en
 
+Gmail Image Extractor in particular offers a variety of benefits versus other solutions. Some of these include a simple to use web application that is both browser and operating system independent, the ability to preview images prior to deletion, and the ability to save/delete images from a custom selection. More is to come in the future.
 
 Methodology
 -----------
