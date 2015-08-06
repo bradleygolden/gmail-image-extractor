@@ -73,15 +73,15 @@ License
 -------
 Please see the file called [License](https://github.com/bradleygolden/gmail-image-extractor/blob/master/LICENSE.txt)
 
-Contact
+Authors
 -------
-**Bradley Golden** - golden.bradley@gmail.com - https://bradleygolden.github.io
+Written by [Bradley Golden](https://bradleygolden.github.io) golden.bradley@gmail.com and Pete Snyder psnyde2@uic.edu for Chris Kanich at the University of Illinois at Chicago.
 
 Credits and Acknowledgements
 ----------------------------
 **Special thanks to the [Cloudsweeper](https://cloudsweeper.cs.uic.edu) team:**
-* Pete Snyder (psnyde2@uic.edu)
-* Chris Kanich (ckanich@uic.edu)
+* Pete Snyder psnyde2@uic.edu
+* Chris Kanich ckanich@uic.edu
 
 Known Bugs
 ------------
