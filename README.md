@@ -88,11 +88,15 @@ Known Bugs
 
 ###### Save functionality - Broken
 
-* This feature is ridden with issues
-  * Current solution
-    * I originally tried to send all of the images in packets of 10 via web sockets to the front-end where the front-end combines the packets and puts them in one large zip file. The user can then choose where to download that file. This works intermittently depending on the browser being used and the file size. This doesn't work for large data sets generally 500mb or more. This method makes the solution to the problem difficult.
-  * Next solution
-    * Create zip server size, save it, and send file to front-end. File size will have to be limited roughly 400mb
+*This feature is ridden with issues*
+  
+  **Current solution**
+
+  * I originally tried to send all of the images in packets of 10 via web sockets to the front-end where the front-end combines the packets and puts them in one large zip file. The user can then choose where to download that file. This works intermittently depending on the browser being used and the file size. This doesn't work for large data sets generally 500mb or more. This method makes the solution to the problem difficult.
+    
+  **Next solution**
+
+    * Create zip file on the server side, save it, and send file to front-end. File size will have to be limited roughly 400mb
     * For larger image sets, the solution is still unknown...
 
 ###### Other bugs
@@ -111,8 +115,8 @@ Upcoming Features
   - [ ] Create save progress bar - looks as if the app is broken, needs a progress bar
   - [ ] Implement web logs for error tracking, etc.
   - [ ] Use HMAC to secure image information in front-end
-    * Currently each image is uniquely associated with an id. This id is the memory location in hex format of the image's respective gmail attachment object. The next step for improving security is to hash the id's using HMAC to gurentee secured unqiue id's. The algorithm will look like the following:
-
+    > Currently each image is uniquely associated with an id. This id is the memory location in hex format of the image's respective gmail attachment object. The next step for improving security is to hash the id's using HMAC to gurentee secured unqiue id's. The algorithm will look like the following:
+      ```
       1. Get hex value of memory location from attachment [image id]
       2. Get image name from attachment
       3. Hash each image id using sha256
@@ -121,6 +125,7 @@ Upcoming Features
       6. Send HMAC key and image name to front end
       7. Add image name and HMAC key image thumbnail node name and id respectively
       8. Add image name to preview modal title
+      ```
       
   - [ ] Create delete progress bar - images already disappear as they are erased, this is extra
   - [ ] Display total images saved/deleted at the top of the page
