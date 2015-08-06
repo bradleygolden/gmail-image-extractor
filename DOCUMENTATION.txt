@@ -1,0 +1,31 @@
+Intro
+-----
+
+Email clients are offering larger and larger storage space for emails as time progresses. Currently, Gmail offers 100 gigabytes of space for their users and this figure is growing each year. As Gmail's storage limit increases, many consumers continue to archive emails for various reasons including saving for later use. Among these saved emails, many may contain images that have sentimental value, contain personal information, and more. The existence of these images also provides opportunities for hackers to exploit users unknowingly.  Therefore, it's important to provide gmail users with tools to effectively manage their email account for the purpose of increasing security and the awareness of the data that exists within their accounts. Gmail Image Extractor is the current solution for providing users the access to secure photo attachments in one easy location. Gmail Image Extractor requires no extra login information then their pre-existing email account information and is completely web based for ease of use.
+
+Related Work
+------------
+
+- Cloudsweeper, a web application, is working towards providing more Gmail users with tools to secure their Gmail accounts.
+- AttachmentExtractor for Thunderbird extracts attachments from emails and allows users to delete, detach, or mark the messages as read.
+- Mail Attachment Downloader for Windows has many options that include downloading and deleting attachments from emails.
+- Save Emails and Attachments for Google Drive has the option to download images from Gmail to Google Drive
+
+Methodology
+-----------
+- Gmail-Image-Extractor uses the pygmail python module for extracting images from users Gmail accounts.
+- Messages are loaded from the user's Gmail account and each message is scanned for attachments.
+- Each attachment is linked with an attachment id. This attachment id is the hex value of the attachments object memory location. Because this method is used it's very important that messages are only extracted once from the use's Gmail account. Repeating loading of message from Gmail results in different memory locations for each attachment object.
+- Each attachment body is encoded using base64 and sent to a webpage for display along with the unique image id.
+- After a user selects each image for deletion, all image id's are sent to the backend and later forwarded to pygmail for deletion.
+
+Results (As of 8/6/2015)
+-------
+- Gmail-Image-Extractor currently loads images of png, gif, and jpg format from user's inbox. 
+- It accounts for many outlier cases in which there are duplicate image names, duplicate image types, images of extreme size both small and large.
+- However, there may be cases that have not been accounted for and further testing is needed to ensure those cases are accounted for in the code base.
+- The delete feature works with the cases mentioned above.
+- The save feature is not functional and is more complicated than originally expected.
+
+Conclusion
+----------
