@@ -95,6 +95,8 @@ jQuery(function ($) {
 			.attr("aria-valuemax", max)
 			.css("width", ((cur / max) * 100) + "%");
 		}
+
+		return;
 	};
 
 	feedback = function (msg, additional_message) {
@@ -121,6 +123,8 @@ jQuery(function ($) {
 			$alert.text(msg.msg);
 
 		}
+
+		return;
 	};
 
 	previewImage = function (image_body) {
@@ -489,9 +493,6 @@ jQuery(function ($) {
 			break;
 
 			case "image-packet":
-				//TODO - temporary until all progress bars are changes to number of images vs.
-				//number of messages
-				console.log(msg);
 				feedback(msg);
 				update_progress(msg.packet_count, msg.total_images);
 				if(packets_complete(msg)){
