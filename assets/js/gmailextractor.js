@@ -197,9 +197,8 @@ jQuery(function ($) {
 			"type": "save",
 			"image": selected_imgs	
 		});
-
+		//$('#saveProgressModal').modal('show');
 		ws.send(params);
-
 	});
 
 	//sends currently selected images to the backend for removal
@@ -213,7 +212,7 @@ jQuery(function ($) {
 
 		ws.send(params);
 
-		$("#deleteModal").modal('hide');
+		//$("#deleteModal").modal('hide');
 	});
 
 	$auth_form.submit(function () {
