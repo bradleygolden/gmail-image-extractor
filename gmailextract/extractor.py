@@ -13,7 +13,6 @@ import zipfile
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
-attachment_count = 0
 
 
 class GmailImageExtractor(object):
@@ -166,14 +165,13 @@ class GmailImageExtractor(object):
                         index of the current message being downloaded.
 
         Returns:
-            The number of images written to disk.
+            The number of attachments found
         """
 
         def _cb(*args):
             if callback:
                 callback(*args)
 
-        global attachment_count
         attachment_count = 0
         num_messages = 0
         offset = 0
@@ -399,7 +397,20 @@ class GmailImageExtractor(object):
 
         return zf
 
-    def package_images(self, messages_to_save, callback=None, max_packet_size=10):
+    def get_attachment_count(self, some_messages):
+
+        attachment_count = 0
+
+        for a_message, some_attachments in some_messages.iteritems():
+            for an_attachment in some_attachments:
+                attachment_count += 1
+
+        return attachment_count
+
+    def do_save(self, messages_to_save, callback=None, max_packet_size=10):
+        """
+        Sends images in packets of 10 to the front-end
+        """
 
         def _cb(*args):
             if callback:
@@ -409,7 +420,7 @@ class GmailImageExtractor(object):
         image_names = []
         packet_size = 0
         images_packaged = 0
-        global attachment_count
+        attachment_count = self.get_attachment_count(messages_to_save)
 
         # loop through each message and extract attachments
         for message, some_images in messages_to_save.iteritems():
@@ -442,14 +453,10 @@ class GmailImageExtractor(object):
         return
 
     def save(self, msg, callback=None):
-        """Creates an array of images based on user's the user's selection.
-
-        Returns:
-            packaged_images --array of images base64 encoded images
-            image_names --array of image names corresponding to packaged_images
         """
-
-        # packaged_images = []
+        Arranges msg by gmailid and attachment
+        Wrapper for do_save function
+        """
 
         def _cb(*args):
             if callback:
@@ -461,7 +468,7 @@ class GmailImageExtractor(object):
             print("Couldn't parse selected images.")
 
         try:
-            self.package_images(messages, callback)
+            self.do_save(messages, callback)
             # _cb("save-passed", packaged_images, image_names)
 
         except:

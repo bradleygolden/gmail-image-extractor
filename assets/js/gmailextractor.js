@@ -341,71 +341,79 @@ jQuery(function ($) {
 
 	function save_file(names, images)
 	{
-		if (names.length != images.length)
+		if (names.length != images.length){
+			console.error("Images names do not match up with the nubmer of images. They must be equal!");
 			return;
+		}
+			
+		var total_images = images.length;
+		var zipped_images = 0;
+		var count = 2;
+		var prev = count;
+		var duplicate_tag = "";
+		
 
 		try {
+		//create JSZip object
+		var zip = new JSZip();
 
-			var total_images = images.length;
-			var zipped_images = 0;
-			var count = 2;
-			var prev = count;
-			var duplicate_tag = "";
-			
+		//add images and their names to zip file
+		for (var i = 0; i < images.length; i++)
+		{
+			try {
+					//manange duplicate images
+					while(zip.file(names[i]).name != null)
+					{
+						//console.log("duplicate image exists:", names[i]);
+						//get img_type i.e. .jpg
+						var img_type = names[i].slice(names[i].length - 4,names[i].length);
+						//console.log("image extension:", img_type);
 
-			//create JSZip object
-			var zip = new JSZip();
+						//remove img_type image.jpg -> image
+						names[i] = names[i].slice(0,names[i].length-4);
+						//console.log("removed extension:", names[i]);
 
-			//add images and their names to zip file
-			for (var i = 0; i < images.length; i++)
-			{
-				try {
-						//manange duplicate images
-						while(zip.file(names[i]).name != null)
-						{
-							//console.log("duplicate image exists:", names[i]);
-							//get img_type i.e. .jpg
-							var img_type = names[i].slice(names[i].length - 4,names[i].length);
-							//console.log("image extension:", img_type);
+						//add a duplicate image tag
+						names[i] = names[i] + "(" + count + ")";
+						//console.log("duplicate tag added:", names[i]);
 
-							//remove img_type image.jpg -> image
-							names[i] = names[i].slice(0,names[i].length-4);
-							//console.log("removed extension:", names[i]);
+						//add image extension
+						names[i] = names[i] + img_type;
+						//console.log("image extension added:", names[i]);
 
-							//add a duplicate image tag
-							names[i] = names[i] + "(" + count + ")";
-							//console.log("duplicate tag added:", names[i]);
-
-							//add image extension
-							names[i] = names[i] + img_type;
-							//console.log("image extension added:", names[i]);
-
-							count++;
-						}
-				} catch (e){
-					//do nothing
-					//console.log(names[i],"isn''t a duplicate");
-				}
-
-				count = 2;
-				zip.file(names[i], images[i], {base64: true});
-				zipped_images += 1;
-				//console.log("zipped:", names[i], zipped_images, "total", total_images);
-
+						count++;
+					}
+			} catch (e){
+				//do nothing here, there is no duplicate named zip object
 			}
 
-			var content = null;
+			count = 2;
+			zip.file(names[i], images[i], {base64: true});
+			zipped_images += 1;
+			//console.log("zipped:", names[i], zipped_images, "total", total_images);
 
-			var content = zip.generate({type:"blob"});
-
-			//display os save dialoge using FileSaver.js
-			//console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
-			saveAs(content, "gmail_images.zip");
-
-		} catch(e) {
-			console.log(e)
 		}
 
+		var content = null;
+
+		var content = zip.generate({type:"blob"});
+
+		console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
+		//display os save dialoge using FileSaver.js
+		saveAs(content, "gmail_images.zip");
+		}
+		catch (e){
+			console.log("An error has occured during the zip process:", e);
+		}
+
+		//reset package size count
+		pkg_image_count = 0;
+
+		//reset selected image names
+		image_names = [];
+		
+		//reset selected images
+		encoded_images = [];
 	};
 
 	$(document).on( "click", "input.img-checkbox", function() {
