@@ -3,14 +3,8 @@
 # Main port that Tornado should listen over for serving web pages
 port = 8888
 
-# The name of the site, which will appear in <title />, <h1 />, etc.
-site_name = "Gmail Image Extractor"
-
 # A salt for creating secure cookies.  Should be unique per deployment
 cookie_secret = "SOMETHING RANDOM"
-
-# The URL that Drano should launch from.  Should _not_ include trailing slash
-base_url = "http://uchar6.cs.uic.edu"
 
 # Google provided OAuth2 credentials for completing oauth flow for IMAP access
 oauth2_client_id = "clientid"
