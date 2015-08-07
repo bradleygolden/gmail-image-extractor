@@ -129,8 +129,16 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                     "type": "image-packet",
                                     "images": args[1],
                                     "image_names": args[2],
-                                    "image_count": args[3],
-                                    "total_images": args[4]})
+                                    "packet_count": args[3],
+                                    "num": args[4],
+                                    "messages": args[5]})
+
+            if update_type == "packet-progress":
+                self.write_message({"ok": True,
+                                    "msg": "Packaging images...",
+                                    "type": "packet-progress",
+                                    "num": args[1],
+                                    "messages": args[2]})
 
             if update_type == "save-passed":
                 self.write_message({"ok": True,

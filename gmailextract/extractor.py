@@ -422,6 +422,8 @@ class GmailImageExtractor(object):
         images_packaged = 0
         attachment_count = self.get_attachment_count(messages_to_save)
 
+        _cb("packet-progress", 0, 0)
+
         # loop through each message and extract attachments
         for message, some_images in messages_to_save.iteritems():
             # loop through each image
@@ -437,14 +439,14 @@ class GmailImageExtractor(object):
 
                 # packet of images to front-end
                 if packet_size == max_packet_size:
-                    _cb("image-packet", encoded_images, image_names, packet_size,
+                    _cb("image-packet", encoded_images, image_names, packet_size, images_packaged,
                         attachment_count)
+                    _cb("packet-progress", images_packaged, attachment_count)
                     encoded_images = []
                     image_names = []
                     packet_size = 0
 
-                _cb("packet-progress", images_packaged, attachment_count)
-                print "packaged: %d, total: %d" % (images_packaged, attachment_count)
+                # print "packaged: %d, total: %d" % (images_packaged, attachment_count)
 
         # send remaining images
         if packet_size > 0:

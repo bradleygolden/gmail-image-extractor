@@ -59,14 +59,14 @@ jQuery(function ($) {
 		//create thumbnail for image to be displayed in
 		//create a unique img_id for the purpose of selecting each image
 		$results_container.append('<div class="col-xs-6 col-md-3">' + 
-								'<div class="thumbnail">' +
-								'<input class="img-checkbox" id="' + img_id + 
-								'" name="' + msg_id + '" type="checkbox" style="display:none;"">' +
-								'<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
-								'<img src="' + img.src + '">' + 
-								'</a>' +
-								'</div>' +
-								'</div>');
+								  '<div class="thumbnail">' +
+								  '<input class="img-checkbox" id="' + img_id + 
+								  '" name="' + msg_id + '" type="checkbox" style="display:none;"">' +
+								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' + 
+								  '<img src="' + img.src + '">' + 
+								  '</a>' +
+								  '</div>' +
+								  '</div>');
 	};
 
 	hide_progress = function () {
@@ -153,7 +153,7 @@ jQuery(function ($) {
 				$(this).prop('checked', true);
 
 				var img_info = [$(this).attr("name"), $(this).attr("id")];
-				
+
 				//push selected images to selected images array
 				selected_imgs.push(img_info);
 			}); 
@@ -186,7 +186,7 @@ jQuery(function ($) {
 		changeBtnState(num_checked, "delete");
 		changeBtnState(num_checked, "save");
 	});
-	
+
 	//on click sends selected images to server to retreive full sized images
 	$save.click(function(){
 
@@ -197,7 +197,6 @@ jQuery(function ($) {
 			"type": "save",
 			"image": selected_imgs	
 		});
-		//$('#saveProgressModal').modal('show');
 		ws.send(params);
 	});
 
@@ -244,7 +243,7 @@ jQuery(function ($) {
 		return false;
 	});
 
-	
+
 	$confim_form.submit(function () {
 
 		var params = JSON.stringify({
@@ -345,62 +344,63 @@ jQuery(function ($) {
 			console.error("Images names do not match up with the nubmer of images. They must be equal!");
 			return;
 		}
-			
+
 		var total_images = images.length;
 		var zipped_images = 0;
 		var count = 2;
 		var prev = count;
 		var duplicate_tag = "";
-		
 
 		try {
-		//create JSZip object
-		var zip = new JSZip();
+			//create JSZip object
+			var zip = new JSZip();
 
-		//add images and their names to zip file
-		for (var i = 0; i < images.length; i++)
-		{
-			try {
+			//add images and their names to zip file
+			for (var i = 0; i < images.length; i++)
+			{
+				try {
 					//manange duplicate images
 					while(zip.file(names[i]).name != null)
-					{
-						//console.log("duplicate image exists:", names[i]);
-						//get img_type i.e. .jpg
-						var img_type = names[i].slice(names[i].length - 4,names[i].length);
-						//console.log("image extension:", img_type);
+						{
+							//console.log("duplicate image exists:", names[i]);
+							//get img_type i.e. .jpg
+							var img_type = names[i].slice(names[i].length - 4,names[i].length);
+							//console.log("image extension:", img_type);
 
-						//remove img_type image.jpg -> image
-						names[i] = names[i].slice(0,names[i].length-4);
-						//console.log("removed extension:", names[i]);
+							//remove img_type image.jpg -> image
+							names[i] = names[i].slice(0,names[i].length-4);
+							//console.log("removed extension:", names[i]);
 
-						//add a duplicate image tag
-						names[i] = names[i] + "(" + count + ")";
-						//console.log("duplicate tag added:", names[i]);
+							//add a duplicate image tag
+							names[i] = names[i] + "(" + count + ")";
+							//console.log("duplicate tag added:", names[i]);
 
-						//add image extension
-						names[i] = names[i] + img_type;
-						//console.log("image extension added:", names[i]);
+							//add image extension
+							names[i] = names[i] + img_type;
+							//console.log("image extension added:", names[i]);
 
-						count++;
-					}
-			} catch (e){
-				//do nothing here, there is no duplicate named zip object
+							count++;
+						}
+				} catch (e){
+					//do nothing here, there is no duplicate named zip object
+				}
+
+				count = 2;
+				zip.file(names[i], images[i], {base64: true});
+				zipped_images += 1;
+				//console.log("zipped:", names[i], zipped_images, "total", total_images);
+
 			}
 
-			count = 2;
-			zip.file(names[i], images[i], {base64: true});
-			zipped_images += 1;
-			//console.log("zipped:", names[i], zipped_images, "total", total_images);
+			var content = null;
 
-		}
+			var content = zip.generate({type:"blob"});
 
-		var content = null;
+			console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
+			//display os save dialoge using FileSaver.js
 
-		var content = zip.generate({type:"blob"});
 
-		console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
-		//display os save dialoge using FileSaver.js
-		saveAs(content, "gmail_images.zip");
+			saveAs(content, "gmail_images.zip");
 		}
 		catch (e){
 			console.log("An error has occured during the zip process:", e);
@@ -411,9 +411,10 @@ jQuery(function ($) {
 
 		//reset selected image names
 		image_names = [];
-		
+
 		//reset selected images
 		encoded_images = [];
+
 	};
 
 	$(document).on( "click", "input.img-checkbox", function() {
@@ -468,13 +469,8 @@ jQuery(function ($) {
 				update_results(msg.msg_id, msg.img_id, msg.enc_img);
 			break;
 
-			case "save":
-				save_file(msg.images, msg.image_names);
-			break;
-
 			case "image-packet":
-				console.log(msg);
-				build_image_packets(msg.image_count, msg.total_images, msg.images, msg.image_names);
+				build_image_packets(msg.packet_count, msg.messages, msg.images, msg.image_names);
 			break;
 
 			case "downloading":
@@ -492,6 +488,11 @@ jQuery(function ($) {
 
 			case "image-removed":
 				remove_image(msg.gmail_id, msg.image_id)
+			break;
+
+			case "packet-progress":
+				feedback(msg);
+				update_progress(msg.num, msg.messages);
 			break;
 
 			case "file-checking":
