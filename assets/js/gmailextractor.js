@@ -211,7 +211,7 @@ jQuery(function ($) {
 
 		ws.send(params);
 
-		//$("#deleteModal").modal('hide');
+		$("#deleteModal").modal('hide');
 	});
 
 	$auth_form.submit(function () {
@@ -317,15 +317,19 @@ jQuery(function ($) {
 
 	build_image_packets = function(curr_count, total_images, images, names){
 
-		pkg_image_count += curr_count;
+		if (curr_count == 0 || total_images == 0 || images.length == 0 || names.length == 0){
+			return;
+		}
 
-		if (pkg_image_count == total_images){
+		if (curr_count == total_images){
 
 			for (i = 0; i < names.length; i++){
 				image_names.push(names[i]);
 				encoded_images.push(images[i]);
 			}
 
+			console.log("save_file");
+			hide_progress();
 			save_file(image_names, encoded_images);
 		}
 
@@ -350,6 +354,8 @@ jQuery(function ($) {
 		var count = 2;
 		var prev = count;
 		var duplicate_tag = "";
+		var msg = {"ok": true, msg: "Creating zip file..."};
+		feedback(msg);
 
 		try {
 			//create JSZip object
@@ -399,10 +405,14 @@ jQuery(function ($) {
 			console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
 			//display os save dialoge using FileSaver.js
 
-
+			msg.msg = "Zip file successfully created!";
+			feedback(msg);
 			saveAs(content, "gmail_images.zip");
 		}
 		catch (e){
+			msg.msg = "Zip compilation failed...";
+			msg.ok = false;
+			feedback(msg);
 			console.log("An error has occured during the zip process:", e);
 		}
 
@@ -470,7 +480,12 @@ jQuery(function ($) {
 			break;
 
 			case "image-packet":
-				build_image_packets(msg.packet_count, msg.messages, msg.images, msg.image_names);
+				//TODO - temporary until all progress bars are changes to number of images vs.
+				//number of messages
+				console.log(msg);
+				feedback(msg);
+				update_progress(msg.packet_count, msg.total_images);
+				build_image_packets(msg.packet_count, msg.total_images, msg.images, msg.image_names);
 			break;
 
 			case "downloading":
@@ -491,8 +506,8 @@ jQuery(function ($) {
 			break;
 
 			case "packet-progress":
-				feedback(msg);
-				update_progress(msg.num, msg.messages);
+				//feedback(msg);
+				//update_progress(msg.num, msg.messages);
 			break;
 
 			case "file-checking":

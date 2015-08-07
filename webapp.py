@@ -61,7 +61,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         else:
             self.write_message({'ok': True,
                                 "type": "connect",
-                                "msg": u"Successfully connecting with Gmail."})
+                                "msg": u"Successfully connected with Gmail."})
 
             num_messages = state['extractor'].num_messages_with_attachments()
             self.write_message({'ok': True,
@@ -126,12 +126,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             update_type = args[0]
             if update_type == "image-packet":
                 self.write_message({"ok": True,
+                                    "msg": u"{0} of {1} total {2} extracted from gmail..."
+                                    "".format(args[4], args[5], plural(u"image", args[5])),
                                     "type": "image-packet",
                                     "images": args[1],
                                     "image_names": args[2],
-                                    "packet_count": args[3],
-                                    "num": args[4],
-                                    "messages": args[5]})
+                                    "packet_size": args[3],
+                                    "packet_count": args[4],
+                                    "total_images": args[5]})
 
             if update_type == "packet-progress":
                 self.write_message({"ok": True,
