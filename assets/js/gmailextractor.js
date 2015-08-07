@@ -315,6 +315,16 @@ jQuery(function ($) {
 		}
 	};
 
+	packets_complete = function(msg){
+
+		if(build_image_packets(msg.packet_count, msg.total_images, msg.images, msg.image_names)){
+			hide_progress();
+			return true;
+		}
+		else
+			return false;
+	};
+
 	build_image_packets = function(curr_count, total_images, images, names){
 
 		if (curr_count == 0 || total_images == 0 || images.length == 0 || names.length == 0){
@@ -328,9 +338,7 @@ jQuery(function ($) {
 				encoded_images.push(images[i]);
 			}
 
-			console.log("save_file");
-			hide_progress();
-			save_file(image_names, encoded_images);
+			return true;
 		}
 
 		else {
@@ -339,6 +347,7 @@ jQuery(function ($) {
 				image_names.push(names[i]);
 				encoded_images.push(images[i]);
 			}
+			return false;
 		}
 	};
 
@@ -485,7 +494,9 @@ jQuery(function ($) {
 				console.log(msg);
 				feedback(msg);
 				update_progress(msg.packet_count, msg.total_images);
-				build_image_packets(msg.packet_count, msg.total_images, msg.images, msg.image_names);
+				if(packets_complete(msg)){
+					save_file(image_names, encoded_images);
+				}
 			break;
 
 			case "downloading":
