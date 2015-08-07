@@ -56,11 +56,11 @@ To begin the actual deletion of images from the user?s Gmail account, a method f
 
 In the backend, each array is organized by a unique message id and image id. After organizing the selected images, each corresponding message is pulled from the user?s Gmail account. It is important to note during this process that each message should only be extracted ONCE. Any further extractions result in a different message object that contains a different unique message id and memory location (the memory location is important for later). 
 
-** First deletion method: **
+**First deletion method:**
 
 Upon extracting each message, the attachments are also extracted from the message. Each attachment object is then matched with the corresponding image id (hash of the image body) to verify if in fact the user actually selected that image for deletion. If the user selected that image, it is saved for deletion. Due to the fact that multiple duplicate images can exists in a single user?s inbox, the message id and image id proved to be non unique. Thus this method failed to produce the desired result.
 
-** Current deletion method: **
+**Current deletion method:**
 
 The method for extracting images is the same as the first, however rather than using the hash of the image body for constructing an image id, a new strategy had to be used. Because each attachment is a unique object referenced to a unique memory address, the hex value of the memory address proves to always be unique for every message. Therefore, it was decided that the hex value of the attachment object?s memory location was to be used. 
 
@@ -70,15 +70,15 @@ This method in the end eliminated any id conflicts during and is currently being
 
 After completing the delete tool, providing the option for users to save images seemed like a necessary option. At the moment, the save tool uses the following two external libraries: JSZip, FileSaver.js.
 
-** First save method: **
+**First save method:**
 
 In the first iteration of the save feature, all selected images were bundled in a zip file using Python and sent to the front end through a web socket. This proved to be successful at first, but later testing showed this method to be highly unstable. In the case where the zip file was relatively large, the web socket would lock up. This would result in the front end not receiving the zip file.
 
-** Second and current save method: **
+**Second and current save method:**
 
 To eliminate the issue of the web socket locking up when receiving large amounts of data, packets were used instead. Rather than zipping the file into one large file in the back end, images are sent in packets of ten to the front end. The front end collects these packets and combines them into a zip file using JSZip. The user is then prompted with a save dialogue. This save dialogue is made possible by FileSaver.js.
 
-** Notes: **
+**Notes:**
 
 The current save feature is highly unstable but, a rudimentary option is available for testing when using Chrome. At the moment, users in Chrome have the option to save images in a zip format so long as the size of the selected images is not too large. This limit is estimated to be around 500 megabytes.
 
@@ -104,16 +104,16 @@ The current version of Gmail-Image-Extractor is well on its way to becoming a pr
 Resources and References
 ----------
 
-JSZip https://stuk.github.io/jszip/
-FileSaver.js https://github.com/eligrey/FileSaver.js/
-Pygmail https://github.com/snyderp/pygmail
-Bootstrap http://getbootstrap.com/
-JQuery https://jquery.com
-JavaScript https://developer.mozilla.org/en-US/docs/Web/JavaScript
-HTML http://www.w3.org/html/
-CSS https://developer.mozilla.org/en-US/docs/Web/CSS
-Python https://www.python.org/
-Tornado http://www.tornadoweb.org/en/stable/
-GIT https://git-scm.com/
-Websockets https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API
-See Related Work
+* JSZip https://stuk.github.io/jszip/
+* FileSaver.js https://github.com/eligrey/FileSaver.js/
+* Pygmail https://github.com/snyderp/pygmail
+* Bootstrap http://getbootstrap.com/
+* JQuery https://jquery.com
+* JavaScript https://developer.mozilla.org/en-US/docs/Web/JavaScript
+* HTML http://www.w3.org/html/
+* CSS https://developer.mozilla.org/en-US/docs/Web/CSS
+* Python https://www.python.org/
+* Tornado http://www.tornadoweb.org/en/stable/
+* GIT https://git-scm.com/
+* Websockets https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API
+* See more under ?Related Work?
