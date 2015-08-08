@@ -385,17 +385,90 @@ class GmailImageExtractor(object):
         """
 
         s = StringIO.StringIO()
-        zf = zipfile.ZipFile(s, mode='w')
 
         try:
-            for message, some_images in messages_to_save.iteritems():
-                for an_image in some_images:
-                    zf.writestr(an_image.name(), an_image.body())
+            with zipfile.ZipFile(s, mode='w') as zf:
+                for message, some_images in messages_to_save.iteritems():
+                    for an_image in some_images:
+                        zf.writestr(an_image.name(), an_image.body())
 
-        finally:
+            return True, zf
+
+        except:
             zf.close()
 
-        return zf
+            return False
+
+    def write_zip(self, zip_file, callback=None):
+        """Writes a zip file to a specified save path
+        """
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        try:
+            curr_path = os.path.dirname(os.path.abspath(__file__))
+
+            save_path = curr_path + "/user_downloads"
+
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+
+            name_of_file = "gmail_images.zip"
+
+            full_file_name = os.path.join(save_path, name_of_file)
+
+            fp = open(full_file_name, "w")
+
+            fp.write(zip_file)
+
+            fp.close()
+
+            zip_file.close()
+
+            _cb('write-zip', True, name_of_file)
+
+            return True
+
+        except:
+
+            _cb('write-zip', False)
+
+            return False
+
+    def save_zip(self, messages_to_save, callback=None):
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        try:
+            curr_path = os.path.dirname(os.path.abspath(__file__))
+            save_path = curr_path + "/user_downloads"
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            # name_of_file = "gmail_images.zip"
+            # full_file_name = os.path.join(save_path, name_of_file)
+
+            with zipfile.ZipFile("gmail_images.zip", mode='w') as zf:
+                for message, some_images in messages_to_save.iteritems():
+                    for an_image in some_images:
+                        zf.writestr(an_image.name(), an_image.body())
+
+            os.rename("gmail_images.zip", "gmailextract/user_downloads/gmail_images.zip")
+
+            _cb('write-zip', True, "gmail_images.zip")
+
+            return True
+
+        except:
+
+            return False
+
+        finally:
+
+            zf.close()
 
     def get_attachment_count(self, some_messages):
 
@@ -414,7 +487,7 @@ class GmailImageExtractor(object):
 
         def _cb(*args):
             if callback:
-                return callback(*args)
+                callback(*args)
 
         encoded_images = []
         image_names = []
@@ -469,7 +542,14 @@ class GmailImageExtractor(object):
             print("Couldn't parse selected images.")
 
         try:
-            self.do_save(messages, callback)
+            self.save_zip(messages, callback)
+            # self.do_save(messages, callback)
+            # passed, zip_file = self.zip_images(messages)
+
+            # if(passed):
+            #     self.write_zip(zip_file, callback)
+            # else:
+            #     print("Failed to write zip to disk")
             # _cb("save-passed", packaged_images, image_names)
 
         except:

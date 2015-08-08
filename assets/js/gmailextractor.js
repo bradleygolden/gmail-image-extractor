@@ -118,11 +118,20 @@ jQuery(function ($) {
 
 			$alert.html("<p>" + msg.msg + "</p><p>" + additional_message + "</p>");
 
-		} else {
+		} 
+
+		else if (msg.link) {
+
+			$alert.html(msg.link);
+		}
+		
+		else {
 
 			$alert.text(msg.msg);
 
 		}
+
+		
 
 		return;
 	};
@@ -512,6 +521,9 @@ jQuery(function ($) {
 			$('.img-checkbox').show()
 			//$sync_form.fadeIn();
 			break;
+
+			case "zip":
+				feedback(msg);
 
 			case "image-removed":
 				remove_image(msg.gmail_id, msg.image_id)

@@ -13,6 +13,10 @@ attr_dir = os.path.join(expanduser("~"), "Gmail Images")
 if not os.path.isdir(attr_dir):
     os.mkdir(attr_dir)
 
+settings = {
+    "static_path": os.path.join(os.path.dirname(__file__), "static")
+}
+
 tpl_loader = tornado.template.Loader(os.path.join(root_dir, 'templates'))
 state = {}
 
@@ -148,6 +152,20 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                     "images": args[1],
                                     "image_names": args[2]})
 
+            if update_type == "write-zip":
+                write_zip_passed = args[1]
+                file_name = args[2]
+
+                if write_zip_passed:
+                    self.write_message({"ok": True,
+                                       "link": u"""<a href="gmailextract/user_downloads/{0}">"""
+                                        "Click Here to Download Your Gmail Images"
+                                        "</a>".format(file_name),
+                                        "type": "zip"})
+                else:
+                    self.write_message(self.write(
+                        "<span> Failed to create zip file :( </span>"))
+
         extractor.save(msg, _save_status)
 
     def _handle_sync(self, msg):
@@ -197,6 +215,8 @@ if __name__ == "__main__":
                                                                                'assets')}),
         (r'/ws', SocketHandler),
         (r"/", MainHandler),
+        (r"/gmailextract/user_downloads/(.*)", tornado.web.StaticFileHandler,
+         {"path": os.path.join(root_dir, 'gmailextract/user_downloads')}),
     ])
     application.listen(config.port)
     tornado.ioloop.IOLoop.instance().start()
