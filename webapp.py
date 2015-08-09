@@ -2,6 +2,8 @@ import tornado
 import tornado.web
 import tornado.template
 import tornado.websocket
+import tornado.gen
+import tornado.auth
 import tornado.escape
 import os
 from os.path import expanduser
@@ -12,10 +14,6 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 attr_dir = os.path.join(expanduser("~"), "Gmail Images")
 if not os.path.isdir(attr_dir):
     os.mkdir(attr_dir)
-
-settings = {
-    "static_path": os.path.join(os.path.dirname(__file__), "static")
-}
 
 tpl_loader = tornado.template.Loader(os.path.join(root_dir, 'templates'))
 state = {}
@@ -28,9 +26,81 @@ def plural(msg, num):
         return u"{0}s".format(msg)
 
 
-class MainHandler(tornado.web.RequestHandler):
+class Application(tornado.web.Application):
+    def __init__(self):
+
+        settings = dict(
+            static_path=os.path.join(root_dir, 'gmailextract/user_downloads'),
+            debug=config.debug,
+            login_url=config.oauth2_login_uri,
+            redirect_uri=config.oauth2_redirect_uri,
+            cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+            xsrf_cookies=config.xsrf_cookies,
+            google_oauth={"key": config.oauth2_client_id, "secret": config.oauth2_client_secret}
+        )
+
+        handlers = [
+            (r"/", MainHandler),
+            (r'/ws', SocketHandler),
+            (r"/assets/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(root_dir,
+                                                                                   'assets')}),
+            (r"/auth/login", GoogleOAuth2LoginHandler),
+            (r"/login", LoginHandler),
+            (r"/logout", LogoutHandler),
+            (r"/gmailextract/user_downloads/(.*)", tornado.web.StaticFileHandler,
+             dict(path=settings['static_path'])),
+        ]
+        tornado.web.Application.__init__(self, handlers, **settings)
+
+
+class BaseHandler(tornado.web.RequestHandler):
+    def get_current_user(self):
+        user_json = self.get_secure_cookie('user')
+        if not user_json:
+            return None
+        return True
+
+
+class MainHandler(BaseHandler):
+    # @tornado.web.authenticated
     def get(self):
         self.write(tpl_loader.load("main.html").generate(home_dir=attr_dir))
+
+
+class LoginHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        self.write(tpl_loader.load("main.html").generate(home_dir=attr_dir))
+
+
+class LogoutHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        self.clear_cookie('user')
+        self.redirect("/")
+
+
+class GoogleOAuth2LoginHandler(tornado.web.RequestHandler,
+                               tornado.auth.GoogleOAuth2Mixin):
+    @tornado.gen.coroutine
+    def get(self):
+        if self.get_argument('code', False):
+            user = yield self.get_authenticated_user(
+                redirect_uri='http://localhost:8888/auth/login',
+                code=self.get_argument('code'))
+            # Save the user with e.g. set_secure_cookie
+            self.set_secure_cookie('user', tornado.escape.json_encode(user))
+            self.redirect("/")
+
+        else:
+            yield self.authorize_redirect(
+                redirect_uri='http://localhost:8888/auth/login',
+                client_id=self.settings['google_oauth']['key'],
+                # scope for full access to email:https://mail.google.com/
+                # scope for modifying emails: https://www.googleapis.com/auth/userinfo.email
+                scope=['email', 'https://mail.google.com/'],
+                response_type='code',
+                extra_params={'approval_prompt': 'auto'})
 
 
 class SocketHandler(tornado.websocket.WebSocketHandler):
@@ -53,6 +123,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             return
 
     def _handle_connect(self, msg, callback=None):
+
+        # obtain user cookie
+        user_json = self.get_secure_cookie('user')
 
         state['extractor'] = GmailImageExtractor(attr_dir, msg['email'],
                                                  msg['pass'], limit=int(msg['limit']),
@@ -158,7 +231,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
                 if write_zip_passed:
                     self.write_message({"ok": True,
-                                       "link": u"""<a href="gmailextract/user_downloads/{0}">"""
+                                        "link": u"""<a href="gmailextract/user_downloads/{0}">"""
                                         "Click Here to Download Your Gmail Images"
                                         "</a>".format(file_name),
                                         "type": "zip"})
@@ -209,14 +282,21 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         state['extractor'] = None
 
-if __name__ == "__main__":
-    application = tornado.web.Application([
-        (r"/assets/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(root_dir,
-                                                                               'assets')}),
-        (r'/ws', SocketHandler),
-        (r"/", MainHandler),
-        (r"/gmailextract/user_downloads/(.*)", tornado.web.StaticFileHandler,
-         {"path": os.path.join(root_dir, 'gmailextract/user_downloads')}),
-    ])
+
+def server_prompt():
+    print ("-------------------------------------")
+    print ("Base Url: {0}".format(config.base_url))
+    print ("Port: {0}".format(config.port))
+    print ("View at: {0}".format(config.full_url))
+    print ("-------------------------------------")
+
+
+def main():
+    application = Application()
+    server_prompt()
     application.listen(config.port)
     tornado.ioloop.IOLoop.instance().start()
+
+
+if __name__ == "__main__":
+    main()

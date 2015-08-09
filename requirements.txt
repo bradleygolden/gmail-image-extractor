@@ -3,14 +3,14 @@ certifi==2015.4.28
 google-api-python-client==1.4.1
 httplib2==0.9.1
 imaplib2==2.45.0
-oauth2client==1.4.11
+oauth2client==1.4.12
 Pillow==2.9.0
-pyasn1==0.1.7
-pyasn1-modules==0.0.5
+pyasn1==0.1.8
+pyasn1-modules==0.0.7
 -e git+git@github.com:snyderp/pygmail.git@0e05ef8aea151ad3da96060c97fbbaad49395089#egg=pygmail-master
 requests==2.7.0
-rsa==3.1.4
-simplejson==3.7.3
+rsa==3.2
+simplejson==3.8.0
 six==1.9.0
 tornado==4.2
 uritemplate==0.6
