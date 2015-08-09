@@ -20,9 +20,9 @@ oauth2_redirect_uri = "/oauth2callback"
 
 # Google provided OAuth2 credentials for completing oauth flow for IMAP access
 # oauth2_client_id = "YOUR CLIENT ID HERE"
-oauth2_client_id = "390031749073-2c2q22mgtguktpqn7fbagmj964kdmuo3.apps.googleusercontent.com"
+oauth2_client_id = "client_id"
 # oauth2_client_secret = "YOUR CLIENT SECRET HERE"
-oauth2_client_secret = "qjEnaeieHNim0OAiKPnVKWlz"
+oauth2_client_secret = "client_secret"
 
 # Enable cross-site request forgery protection
 xsrf_cookies = False
