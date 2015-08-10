@@ -10,12 +10,15 @@ from os.path import expanduser
 from gmailextract.extractor import GmailImageExtractor
 import config
 
+from tornado.options import define, options
+define("port", default=8888, help="run on the given port", type=int)
+
 root_dir = os.path.dirname(os.path.abspath(__file__))
 attr_dir = os.path.join(expanduser("~"), "Gmail Images")
 if not os.path.isdir(attr_dir):
     os.mkdir(attr_dir)
 
-tpl_loader = tornado.template.Loader(os.path.join(root_dir, 'templates'))
+# tpl_loader = tornado.template.Loader(os.path.join(root_dir, 'templates'))
 state = {}
 
 
@@ -31,6 +34,7 @@ class Application(tornado.web.Application):
 
         settings = dict(
             static_path=os.path.join(root_dir, 'gmailextract/user_downloads'),
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
             debug=config.debug,
             login_url=config.oauth2_login_uri,
             redirect_uri=config.oauth2_redirect_uri,
@@ -64,7 +68,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     # @tornado.web.authenticated
     def get(self):
-        self.write(tpl_loader.load("main.html").generate(home_dir=attr_dir))
+        self.render('main.html')
 
 
 class LoginHandler(BaseHandler):
@@ -292,6 +296,7 @@ def server_prompt():
 
 
 def main():
+    tornado.options.parse_command_line()
     application = Application()
     server_prompt()
     application.listen(config.port)
