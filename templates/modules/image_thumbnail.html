@@ -1,0 +1,13 @@
+<!-- Image Thumbanil - A thumbnail of each image extracted from the users account -->
+<div class="col-xs-6 col-md-3">
+  <div class="thumbnail">
+    <input class="img-checkbox {{image['message_id']}}" 
+           id="{{image['image_id']}}" 
+           name="image['name']" 
+           type="checkbox" 
+           tyle="display:none;">
+    <!-- <a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\') --> 
+    <img src="image['resized_body']"> 
+    <!--</a> -->
+  </div>
+</div>

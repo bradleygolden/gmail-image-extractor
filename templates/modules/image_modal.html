@@ -1,0 +1,5 @@
+<!-- Image Modal - Uses the basic modal format and gives the user a preview of a selected image -->
+{% extends "modal.html" %}      
+{% block body %}
+<img id="{{modal['image']['id']}}" src="{{modal['image']['body']}}">
+{% end %}

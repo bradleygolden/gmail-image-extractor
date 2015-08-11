@@ -11,7 +11,7 @@ from gmailextract.extractor import GmailImageExtractor
 import config
 
 from tornado.options import define, options
-define("port", default=8888, help="run on the given port", type=int)
+define("port", default=config.port, help="run on the given port", type=int)
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 attr_dir = os.path.join(expanduser("~"), "Gmail Images")
@@ -32,28 +32,30 @@ def plural(msg, num):
 class Application(tornado.web.Application):
     def __init__(self):
 
+        handlers = [
+            # handlers
+            (r"/", MainHandler),
+            (r'/ws', SocketHandler),
+            # (r"/auth/login", GoogleOAuth2LoginHandler),
+            # (r"/login", LoginHandler),
+            # (r"/logout", LogoutHandler),
+
+            # static paths
+            # (r"/assets/(.*)", tornado.web.StaticFileHandler, (dict(path=settings['static_path']))),
+            # (r"/downloads/(.*)", tornado.web.StaticFileHandler, (dict(path=settings['static_path']))),
+        ]
+
         settings = dict(
-            static_path=os.path.join(root_dir, 'gmailextract/user_downloads'),
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            debug=config.debug,
+            template_path=os.path.join(os.path.dirname(__file__), 'templates'),
+            static_path=os.path.join(os.path.dirname(__file__), 'static'),
             login_url=config.oauth2_login_uri,
             redirect_uri=config.oauth2_redirect_uri,
             cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
             xsrf_cookies=config.xsrf_cookies,
-            google_oauth={"key": config.oauth2_client_id, "secret": config.oauth2_client_secret}
+            google_oauth={"key": config.oauth2_client_id, "secret": config.oauth2_client_secret},
+            debug=config.debug,
         )
 
-        handlers = [
-            (r"/", MainHandler),
-            (r'/ws', SocketHandler),
-            (r"/assets/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(root_dir,
-                                                                                   'assets')}),
-            (r"/auth/login", GoogleOAuth2LoginHandler),
-            (r"/login", LoginHandler),
-            (r"/logout", LogoutHandler),
-            (r"/gmailextract/user_downloads/(.*)", tornado.web.StaticFileHandler,
-             dict(path=settings['static_path'])),
-        ]
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
@@ -67,15 +69,15 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class MainHandler(BaseHandler):
     # @tornado.web.authenticated
+
     def get(self):
         self.render('main.html')
 
 
 class LoginHandler(BaseHandler):
-    @tornado.web.authenticated
+    # @tornado.web.authenticated
     def get(self):
-        self.write(tpl_loader.load("main.html").generate(home_dir=attr_dir))
-
+        self.render('main.html')
 
 class LogoutHandler(BaseHandler):
     @tornado.web.authenticated
@@ -299,7 +301,7 @@ def main():
     tornado.options.parse_command_line()
     application = Application()
     server_prompt()
-    application.listen(config.port)
+    application.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
 
 

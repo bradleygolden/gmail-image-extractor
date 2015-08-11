@@ -1,0 +1,25 @@
+<!-- Extract - Displays all extracted images from the user's gmail account>
+{% extends "main.html" %}
+{% block body %}
+<div class="row"> 
+
+  <div class="alert">
+  </div>
+
+  <div class="progress" style="display: none">
+    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0">
+    </div>
+  </div>
+
+  {% module Image_Menu() %}
+
+  {% module Delete_Modal(modal) %}
+
+  {% module Image_Modal(image) %}
+
+  <div class="images container-fluid" style="display: none">
+  {% module Image_Thumbnail(image) %}
+  </div>
+
+</div>
+{% end %}
