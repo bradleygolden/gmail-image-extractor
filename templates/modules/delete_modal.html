@@ -1,8 +1,9 @@
 <!-- Delete Modal - Module that extends a basic modal with a delete prompt. -->
-{% extends "modal.html"}
+{% extends "../modal.html" %}
+{% block title %}Warning{% end %}
 {% block body %}
 Are you sure you want to delete this selection? All images will be deleted permanently from your mailbox.
 {% end %}
-{% block footer %}
-<button id="delete-modal" class="btn btn-danger">Delete</button>
+{% block buttons %}
+<button id="delete-confirmed" class="btn btn-danger">Delete</button>
 {% end %}

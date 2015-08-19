@@ -104,7 +104,7 @@ class GoogleOAuth2LoginHandler(tornado.web.RequestHandler,
                 client_id=self.settings['google_oauth']['key'],
                 # scope for full access to email:https://mail.google.com/
                 # scope for modifying emails: https://www.googleapis.com/auth/userinfo.email
-                scope=['email', 'https://mail.google.com/'],
+                scope=['profile', 'email', 'https://mail.google.com/'],
                 response_type='code',
                 extra_params={'approval_prompt': 'auto'})
 

@@ -10,6 +10,7 @@ import pygmail.errors
 # from .fs import sanatize_filename, unique_filename
 from pygmail.account import Account
 import zipfile
+import time
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
@@ -23,13 +24,13 @@ class GmailImageExtractor(object):
     images the user selected in the web interface.
     """
 
-    def __init__(self, dest, email, password, limit=None, batch=10, replace=False):
+    def __init__(self, dest, email, access_token, limit=None, batch=10, replace=False):
         """
         Args:
             dest     -- the path on the file system where images should be
                         extracted and written to.
             email -- the username of the Gmail account to connect to
-            password -- the password of the Gmail account to connect to
+            access_token -- the access_token of the Gmail account to connect to
 
         Keyword Args:
             limit   -- an optional limit of the total number of messages to
@@ -54,7 +55,7 @@ class GmailImageExtractor(object):
         self.batch = batch
         self.replace = replace
         self.email = email
-        self.password = password
+        self.access_token = access_token
 
     def validate_path(self):
         """Checks to see the currently selected destiation path, for where
@@ -112,7 +113,7 @@ class GmailImageExtractor(object):
             return ""
 
     def connect(self):
-        """Attempts to connect to Gmail using the username and password provided
+        """Attempts to connect to Gmail using the username and access_token provided
         at instantiation.
 
         Returns:
@@ -120,7 +121,7 @@ class GmailImageExtractor(object):
             to Gmail using the current parameters.
         """
 
-        mail = Account(self.email, password=self.password)
+        mail = Account(self.email, oauth2_token=self.access_token)
         trash_folder = mail.trash_mailbox()
         if pygmail.errors.is_error(trash_folder):
             return False
@@ -195,6 +196,8 @@ class GmailImageExtractor(object):
                 for att in msg.attachments():
                     if att.type in ATTACHMENT_MIMES:
 
+                        img_name = att.name()
+
                         # STEP 2 - Note: unique gmail_id for each message
                         msg_id = msg.gmail_id
 
@@ -234,7 +237,7 @@ class GmailImageExtractor(object):
                         #          --hmac: autheticated hash
                         # _cb('image', msg_id, img_identifier, encoded_img, hmac_req)
 
-                        _cb('image', msg_id, img_identifier, encoded_img)
+                        _cb('image', msg_id, img_identifier, encoded_img, img_name)
 
                         attachment_count += 1
                         num_messages += 1
@@ -445,22 +448,22 @@ class GmailImageExtractor(object):
 
         try:
             curr_path = os.path.dirname(os.path.abspath(__file__))
-            save_path = curr_path + "/user_downloads"
-            if not os.path.exists(save_path):
-                os.makedirs(save_path)
-            # name_of_file = "gmail_images.zip"
-            # full_file_name = os.path.join(save_path, name_of_file)
+            app_path = os.path.dirname(curr_path)
+            save_path = "/static/user_downloads"
+            abs_path = app_path + save_path
+            if not os.path.exists(abs_path):
+                os.makedirs(abs_path)
+            file_name = "gmail_images.zip"
+            full_file_name = os.path.join(abs_path, file_name)
 
-            with zipfile.ZipFile("gmail_images.zip", mode='w') as zf:
+            with zipfile.ZipFile(file_name, mode='w') as zf:
                 for message, some_images in messages_to_save.iteritems():
                     for an_image in some_images:
                         zf.writestr(an_image.name(), an_image.body())
 
-            os.rename("gmail_images.zip", "gmailextract/user_downloads/gmail_images.zip")
+            os.rename(file_name, full_file_name)
 
-            _cb('write-zip', True, "gmail_images.zip")
-
-            return True
+            _cb('write-zip', True, file_name, save_path + "/" + file_name)
 
         except:
 
@@ -469,6 +472,31 @@ class GmailImageExtractor(object):
         finally:
 
             zf.close()
+
+        self.countdown_remove_zip(config.zip_removal_countdown, file_name)
+        _cb('erased-zip', True)
+        return True
+
+    def countdown(self, seconds):
+        while seconds >= 0:
+            seconds -= 1
+            time.sleep(1)
+        self.remove_zip("gmail_images.zip")
+
+    def countdown_remove_zip(self, seconds, file_name):
+        self.countdown(seconds)
+        self.remove_zip(file_name)
+
+    def remove_zip(self, file_name=None):
+        curr_path = os.path.dirname(os.path.abspath(__file__))
+        if file_name:
+
+            file_path = os.path.dirname(curr_path) + "/static/user_downloads/" + file_name
+
+            try:
+                os.remove(file_path)
+            finally:
+                return
 
     def get_attachment_count(self, some_messages):
 

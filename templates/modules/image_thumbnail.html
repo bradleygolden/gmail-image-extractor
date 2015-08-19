@@ -1,13 +1,15 @@
 <!-- Image Thumbanil - A thumbnail of each image extracted from the users account -->
+{% if image['message_id'] != "" %}
 <div class="col-xs-6 col-md-3">
   <div class="thumbnail">
-    <input class="img-checkbox {{image['message_id']}}" 
-           id="{{image['image_id']}}" 
-           name="image['name']" 
-           type="checkbox" 
-           tyle="display:none;">
-    <!-- <a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\') --> 
-    <img src="image['resized_body']"> 
+    <input class="img-checkbox {{image['message_id']}}"
+           id="{{image['image_id']}}"
+           name="{{image['name']}}"
+           type="checkbox"
+           style="display:block;">
+    <!-- <a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\') -->
+    <img src="{{image['body']}}">
     <!--</a> -->
   </div>
 </div>
+{% end %}

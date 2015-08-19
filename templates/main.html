@@ -23,12 +23,17 @@
         <div id="footer">
           {% block footer %}
           <div class="row">
-            <p>Contact info here...</p>
+            <!-- footer goes here -->
           </div>
           {% end %}
         </div>
       </footer>
       <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+      <script type="text/javascript">
+      var url = "<script src='static/assets/js/gmailextractor.js'><//script>";
+      if( window.location.pathname == '/extractor')
+        $('body').append($(url));
+      </script>
   </body>
 </html>

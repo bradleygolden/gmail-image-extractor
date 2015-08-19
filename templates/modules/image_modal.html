@@ -1,5 +1,4 @@
 <!-- Image Modal - Uses the basic modal format and gives the user a preview of a selected image -->
-{% extends "modal.html" %}      
-{% block body %}
-<img id="{{modal['image']['id']}}" src="{{modal['image']['body']}}">
-{% end %}
+{% extends "../modal.html" %}
+{%block title %}Image Preview{% end %}
+{% block body %}<img id="imagePreview">{% end %}
