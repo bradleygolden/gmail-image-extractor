@@ -61,7 +61,7 @@ class Application(tornado.web.Application):
             debug=config.debug,
             login_uri=config.oauth2_login_url,
             redirect_uri=config.oauth2_redirect_url,
-            cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+            cookie_secret=config.cookie_secret,
             xsrf_cookies=config.xsrf_cookies,
             google_oauth={"key": config.oauth2_client_id, "secret": config.oauth2_client_secret},
         )
