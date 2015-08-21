@@ -1,4 +1,5 @@
 import os
+import shutil
 import config
 import PIL
 from PIL import Image
@@ -440,30 +441,43 @@ class GmailImageExtractor(object):
 
             return False
 
-    def save_zip(self, messages_to_save, callback=None):
+    def get_abs_path(self, file_name=None):
+        home_path = os.path.expanduser("~")
+        save_path = "/Gmail-Image-Extractor/downloads/"
+        abs_path = home_path + save_path
+
+        if file_name:
+            abs_path = abs_path + file_name + ".zip"
+
+        return abs_path
+
+    def save_zip(self, messages_to_save, email, callback=None):
 
         def _cb(*args):
             if callback:
                 callback(*args)
 
+        file_name = email + ".zip"
+
         try:
-            curr_path = os.path.dirname(os.path.abspath(__file__))
-            app_path = os.path.dirname(curr_path)
-            save_path = "/static/user_downloads"
-            abs_path = app_path + save_path
+            # curr_path = os.path.dirname(os.path.abspath(__file__))
+            # app_path = os.path.dirname(curr_path)
+            # abs_path = "~/gmail-images/" + email
+            abs_path = self.get_abs_path()
+
             if not os.path.exists(abs_path):
                 os.makedirs(abs_path)
-            file_name = "gmail_images.zip"
-            full_file_name = os.path.join(abs_path, file_name)
+
+            file_path = os.path.join(abs_path, file_name)
 
             with zipfile.ZipFile(file_name, mode='w') as zf:
                 for message, some_images in messages_to_save.iteritems():
                     for an_image in some_images:
                         zf.writestr(an_image.name(), an_image.body())
 
-            os.rename(file_name, full_file_name)
+            os.rename(file_name, file_path)
 
-            _cb('write-zip', True, file_name, save_path + "/" + file_name)
+            _cb('saved-zip', True, file_name)
 
         except:
 
@@ -473,8 +487,6 @@ class GmailImageExtractor(object):
 
             zf.close()
 
-        self.countdown_remove_zip(config.zip_removal_countdown, file_name)
-        _cb('erased-zip', True)
         return True
 
     def countdown(self, seconds):
@@ -487,14 +499,28 @@ class GmailImageExtractor(object):
         self.countdown(seconds)
         self.remove_zip(file_name)
 
-    def remove_zip(self, file_name=None):
-        curr_path = os.path.dirname(os.path.abspath(__file__))
-        if file_name:
+    def remove_zip(self, file_no_ext=None, callback=None):
 
-            file_path = os.path.dirname(curr_path) + "/static/user_downloads/" + file_name
+        if not file_no_ext:
+            return
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        file_w_ext = self.get_abs_path(file_no_ext)
+
+        if file_w_ext:
 
             try:
-                os.remove(file_path)
+                # remove folder and contents
+                # shutil.rmtree(abs_path)
+                os.remove(file_w_ext)
+                if callback:
+                    try:
+                        _cb('removed-zip', True)
+                    except:
+                        pass
             finally:
                 return
 
@@ -550,11 +576,12 @@ class GmailImageExtractor(object):
 
         # send remaining images
         if packet_size > 0:
-            _cb("image-packet", encoded_images, image_names, packet_size, images_packaged, attachment_count)
+            _cb("image-packet", encoded_images, image_names,
+                packet_size, images_packaged, attachment_count)
 
         return
 
-    def save(self, msg, callback=None):
+    def save(self, msg, email, callback=None):
         """
         Arranges msg by gmailid and attachment
         Wrapper for do_save function
@@ -570,7 +597,7 @@ class GmailImageExtractor(object):
             print("Couldn't parse selected images.")
 
         try:
-            self.save_zip(messages, callback)
+            self.save_zip(messages, email, callback)
             # self.do_save(messages, callback)
             # passed, zip_file = self.zip_images(messages)
 

@@ -36,7 +36,10 @@ selected_imgs = [],
 	// 	pkg_image_count = 0,
 	ws = new WebSocket("ws://" + loc.host + "/ws");
 	//
-		window.onload = function(){
+
+		//window.onload = function(){
+		connect = function(){
+
 			var params = JSON.stringify({
 				"type": "connect",
 				"limit": 0,
@@ -45,6 +48,7 @@ selected_imgs = [],
 			});
 
 			ws.send(params);
+
 	};
 	//
 	// hide_results = function () {
@@ -310,16 +314,19 @@ selected_imgs = [],
 		if(value === 0){
 
 			$type.addClass("disabled");
+			$type.prop('disabled', true);
 			$type.text(msg + " Image");
 		}
 		else if(value === 1){
 
 			$type.removeClass("disabled");
+			$type.prop('disabled', false);
 			$type.text(msg + " Image");
 		}
 		else if(value > 1){
 
 			$type.removeClass("disabled");
+			$type.prop('disabled', false);
 			$type.text(msg + " Images");
 		}
 		else{
@@ -492,10 +499,25 @@ selected_imgs = [],
 		}
 	});
 
+	$(document).on( "click", "#remove-now", function() {
+		var params = {};
+
+		//send all selected images to backend
+		params = JSON.stringify({
+			"type": "remove-zip"
+		});
+		ws.send(params);
+	});
+
 	ws.onmessage = function (evt) {
 		var msg = JSON.parse(evt.data);
 
 		switch (msg['type']) {
+
+			case "ws-open":
+				feedback(msg);
+				connect();
+				break;
 
 			case "connect":
 				feedback(msg);
@@ -531,7 +553,10 @@ selected_imgs = [],
 			//$sync_form.fadeIn();
 			break;
 
-			case "zip":
+			case "saved-zip":
+				feedback(msg);
+
+			case "removed-zip":
 				feedback(msg);
 
 			case "image-removed":
