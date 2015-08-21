@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os.path
-from hashlib import sha256
 
 import tornado
 import tornado.web
@@ -103,16 +102,6 @@ class LogoutHandler(tornado.web.RequestHandler):
             credentials.revoke(httplib2.Http())
             self.clear_all_cookies()
         self.redirect('/')
-
-
-class MyFileHandler(tornado.web.StaticFileHandler):
-    def initialize(self, path):
-        self.dirname, self.filename = os.path.split(path)
-        super(MyFileHandler, self).initialize(self.dirname)
-
-    def get(self, path=None, include_body=True):
-        # Ignore 'path'.
-        super(MyFileHandler, self).get(self.filename, include_body)
 
 
 class GoogleOAuth2LoginHandler(tornado.web.RequestHandler,
@@ -460,8 +449,8 @@ def get_user_info(credentials):
 def server_prompt():
     print ("-------------------------------------")
     print ("Base Url: {0}".format(config.base_url))
-    print ("Port: {0}".format(config.port))
-    print ("View at: {0}".format(config.full_url))
+    print ("Port: {0}".format(options.port))
+    print ("View at: {0}".format(config.base_url + ":" + str(options.port)))
     print ("-------------------------------------")
 
 

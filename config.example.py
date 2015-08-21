@@ -1,5 +1,11 @@
 """Basic server configuration options for the Gmail Image Extractor app"""
 
+# Name of the site
+site_name = "Gmail Image Extractor"
+
+# Site Description
+site_description = "This is the site description"
+
 # Main port that Tornado should listen over for serving web pages
 port = 8888
 
@@ -13,10 +19,10 @@ full_url = base_url + ":" + str(port)
 cookie_secret = "SOMETHING RANDOM"
 
 # Google login url for OAuth2
-oauth2_login_uri = "/auth/login"
+oauth2_login_url = "/auth/login"
 
 # Google redirect URI
-oauth2_redirect_uri = "/oauth2callback"
+oauth2_redirect_url = "/oauth2callback"
 
 # Google provided OAuth2 credentials for completing oauth flow for IMAP access
 # oauth2_client_id = "YOUR CLIENT ID HERE"
@@ -25,7 +31,7 @@ oauth2_client_id = "client_id"
 oauth2_client_secret = "client_secret"
 
 # Enable cross-site request forgery protection
-xsrf_cookies = False
+xsrf_cookies = True
 
 # Set debug mode while using the Torndo server
 # Using debug mode allows for autoreload mode as well as other useful features
@@ -50,3 +56,5 @@ devel_oauth_credentials = dict(
     expires_in=3599,
     email="some email",
 )
+
+zip_removal_countdown = 30*60  # 30 minutes
