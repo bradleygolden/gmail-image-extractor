@@ -179,11 +179,7 @@ selected_imgs = [],
 			timeRemaining = Math.round(minutes - (minutes * percentage));
 			try{
 				$('.circle').circleProgress('value', percentage);
-				var value = $('.circle').circleProgress('value');
-				if (Math.round(minutes - (minutes * value)) != timeRemaining) {
-					console.log(value);
-					$('.circle-text').text(timeRemaining + "");
-				}
+				$('.circle-text').text(timeRemaining + "");
 			}
 			catch(e){
 				//do nothing

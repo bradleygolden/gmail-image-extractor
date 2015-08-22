@@ -160,12 +160,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     self.write_message({"ok": True,
                                         "link": u"""<a href="{0}"
                                         target="_blank" download>"""
-                                        "Click Here to Download Your Gmail Images"
-                                        "</a></br>"
+                                        "<h3>Click Here to Download Your Gmail Images</h3>"
+                                        "</a></br></br>"
+                                        "<span>"
+                                        "Minutes left before your link dissapears or click the timer now to delete the link..."
+                                        "</span></br>"
                                         "<a id=""remove-now"" href=""#""><div id='circle' class='circle'><strong class='circle-text'>{2}</strong></div></a>"
-                                        "<span></br>"
-                                        "Time left before your link dissapears or click the timer now to delete the link..."
-                                        "</span>"
                                         "".format(download_path,
                                                   plural(u"minute",
                                                          config.zip_removal_countdown/60),
