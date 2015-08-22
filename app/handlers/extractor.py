@@ -1,8 +1,9 @@
 import tornado
 import config
+import base
 
 
-class ExtractorHandler(tornado.web.RequestHandler):
+class ExtractorHandler(base.BaseHandler):
     def get(self):
         access_token = self.get_secure_cookie('access_token')
         if access_token:

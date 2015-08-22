@@ -161,16 +161,17 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "link": u"""<a href="{0}"
                                         target="_blank" download>"""
                                         "Click Here to Download Your Gmail Images"
-                                        "</a><span> (The link to download your images will be "
-                                        "available for"
-                                        " {2} {1} or <a id=""remove-now"" href=""#"">"
-                                        "remove the link now</a>"
-                                        ")</span>"
+                                        "</a></br>"
+                                        "<a id=""remove-now"" href=""#""><div id='circle' class='circle'><strong class='circle-text'>{2}</strong></div></a>"
+                                        "<span></br>"
+                                        "Time left before your link dissapears or click the timer now to delete the link..."
+                                        "</span>"
                                         "".format(download_path,
                                                   plural(u"minute",
                                                          config.zip_removal_countdown/60),
                                                   config.zip_removal_countdown/60),
-                                        "type": "saved-zip"})
+                                        "type": "saved-zip",
+                                        "time": config.zip_removal_countdown/60})
 
                     def _remove_link():
                         email = self.get_secure_cookie('email')

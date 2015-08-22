@@ -11,6 +11,7 @@ $results_container = $(".results"),
 	// 	$auth_form = $("#auth-form"),
 	// 	$auth_fields = $auth_form.find(":input"),
 $alert = $(".alert"),
+timer = null,
 	// 	$sync_form = $("#sync-form"),
 	// 	$confim_form = $("#confirm-form"),
 	// 	$no_confirm_bttn = $confim_form.find("[type=cancel]"),
@@ -151,8 +152,57 @@ selected_imgs = [],
 
 		}
 
+		//display a circle progress timer for save link
+		if (msg['type'].localeCompare("saved-zip") == 0){
+			$('.circle').circleProgress({
+						value: 0.0,
+						size: 100,
+						fill: {
+								gradient: ["red", "orange"]
+						}
+			});
+		}
+
 		return;
 	};
+
+	startTimer = function(minutes){
+		maxTime = 60000 * minutes
+
+		var start = new Date();
+		var timeoutVal = Math.floor(maxTime/100);
+
+		animateUpdate(maxTime);
+
+		function updateProgress(percentage) {
+			percentage = percentage/100.0;
+			timeRemaining = Math.round(minutes - (minutes * percentage));
+			try{
+				$('.circle').circleProgress('value', percentage);
+				var value = $('.circle').circleProgress('value');
+				if (Math.round(minutes - (minutes * value)) != timeRemaining) {
+					console.log(value);
+					$('.circle-text').text(timeRemaining + "");
+				}
+			}
+			catch(e){
+				//do nothing
+			}
+		}
+
+		function animateUpdate() {
+		    var now = new Date();
+		    var timeDiff = now.getTime() - start.getTime();
+		    var perc = Math.round((timeDiff/maxTime)*100);
+		      if (perc <= 100) {
+		       updateProgress(perc);
+					 clearTimeout(timer);
+		       timer = setTimeout(animateUpdate, timeoutVal);
+		      }
+		}
+	};
+
+
 
 	previewImage = function (image_body) {
 
@@ -512,6 +562,9 @@ selected_imgs = [],
 			"type": "remove-zip"
 		});
 		ws.send(params);
+
+		//stop timer
+		clearTimeout(timer);
 	});
 
 	ws.onmessage = function (evt) {
@@ -560,6 +613,7 @@ selected_imgs = [],
 
 			case "saved-zip":
 				feedback(msg);
+				startTimer(parseInt(msg.time)); //30 minutes
 
 			case "removed-zip":
 				feedback(msg);

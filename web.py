@@ -38,6 +38,8 @@ class Application(tornado.web.Application):
             cookie_secret=config.cookie_secret,
             xsrf_cookies=config.xsrf_cookies,
             google_oauth={"key": config.oauth2_client_id, "secret": config.oauth2_client_secret},
+            default_handler_class=app.handlers.error.ErrorHandler,
+            default_handler_args= dict(status_code=404),
         )
 
         tornado.web.Application.__init__(self, handlers, **settings)
