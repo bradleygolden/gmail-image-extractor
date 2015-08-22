@@ -1,5 +1,4 @@
 import os
-import shutil
 import config
 import PIL
 from PIL import Image
@@ -443,7 +442,7 @@ class GmailImageExtractor(object):
 
     def get_abs_path(self, file_name=None):
         home_path = os.path.expanduser("~")
-        save_path = "/Gmail-Image-Extractor/downloads/"
+        save_path = "/Gmail-Image-Extractor/download/"
         abs_path = home_path + save_path
 
         if file_name:

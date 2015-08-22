@@ -1,22 +1,18 @@
 #!/usr/bin/env python
 
 import os.path
-
 import tornado
 import tornado.web
 import tornado.template
 import tornado.websocket
 import tornado.auth
 import tornado.escape
-
 import logging
 from oauth2client.client import OAuth2WebServerFlow
 from oauth2client import client
 from apiclient.discovery import build
 from apiclient import errors
-
 import httplib2
-
 from gmailextract.extractor import GmailImageExtractor
 import config
 
@@ -38,21 +34,15 @@ def plural(msg, num):
 class Application(tornado.web.Application):
     def __init__(self):
 
-        # TODO - add static file location at root
         handlers = [
-            # handlers
             (r"/", MainHandler),
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
             (r"/auth/login", GoogleOAuth2LoginHandler),
             (r"/extractor", ExtractorHandler),
             (r"/ws", SocketHandler),
-            # TODO - Serve files outside of namespace of server
-            (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "/user_downloads"}),
             (r'/download/(.*)', tornado.web.StaticFileHandler,
-             dict(path='/Users/bradleygolden/Gmail-Image-Extractor/download')),
-            (r'/check', CheckHandler),
-            (r'/protected/([a-zA-Z0-9_-]+$)', ProtectedHandler),
+             {'path': '/Users/bradleygolden/Gmail-Image-Extractor/download'}),
         ]
 
         settings = dict(
@@ -73,34 +63,11 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
-class CheckHandler(tornado.web.RequestHandler):
-    def get(self):
-        serve_cookie = self.set_secure_cookie('serve_cookie')
-        if serve_cookie:
-            self.redirect('/protected/a')
-        else:
-            # TODO - redirect to 404 error
-            pass
-
-
-class ProtectedHandler(tornado.web.RequestHandler):
-    def get(self, file):
-        serve_cookie = self.get_secure_cookie('serve_cookie')
-        if serve_cookie:
-            self.set_header('X-Accel-Redirect', ''.join(('/protected/', file, '.html')))
-            self.finish()
-
-
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         user = self.get_secure_cookie('user')
         if not user:
             return None
-
-        # TODO - Implement after clicking "begin"
-        # credentials = client.OAuth2Credentials.from_json(user)
-        # if credentials.access_token_expired:
-            # self.redirect(self.settings['login_url'])
 
 
 class MainHandler(BaseHandler):
@@ -113,7 +80,6 @@ class LoginHandler(BaseHandler):
         self.redirect(self.settings['login_url'])
 
 
-# TODO - fix logout process
 class LogoutHandler(tornado.web.RequestHandler):
     def get(self):
         user = self.get_secure_cookie('user')
@@ -227,7 +193,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "msg": status_msg,
                                         "num": args[1]})
 
-            # TODO - Run extract process on different thread
             def _extract():
                 attachment_count = state['extractor'].extract(_status)
 
@@ -306,7 +271,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             if update_type == "saved-zip":
                 save_zip_passed = args[1]
                 file_name = args[2]
-                # file_link = sha256(file_name).hexdigest()
                 file_link = file_name
 
                 download_path = "/download/" + file_link
@@ -314,17 +278,16 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                 if save_zip_passed:
                     self.write_message({"ok": True,
                                         "link": u"""<a href="{0}"
-                                        target="_blank" download="{3}">"""
+                                        target="_blank" download>"""
                                         "Click Here to Download Your Gmail Images"
-                                        "</a><span> (Your images will be available for"
+                                        "</a><span> (The link to download your images will be available for"
                                         " {2} {1} or <a id=""remove-now"" href=""#"">"
-                                        "remove them now</a>"
+                                        "remove the link now</a>"
                                         ")</span>"
                                         "".format(download_path,
                                                   plural(u"minute",
                                                          config.zip_removal_countdown/60),
-                                                  config.zip_removal_countdown/60,
-                                                  file_name),
+                                                  config.zip_removal_countdown/60),
                                         "type": "saved-zip"})
 
                     def _remove_link():

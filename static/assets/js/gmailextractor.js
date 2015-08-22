@@ -50,6 +50,11 @@ selected_imgs = [],
 			ws.send(params);
 
 	};
+
+	window.onload = function(){
+		$('#save').prop('disabled', true);
+		$('#delete').prop('disabled', true);
+	};
 	//
 	// hide_results = function () {
 	//

@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title> {{site_name}} </title>
+    <title> {{site_name}}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+    <link href='http://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -12,7 +17,8 @@
   <body>
     <div class="container">
       <header>
-        <h1> {{site_name}} </h1>
+        <h1> <!--{{site_name}}--> </h1>
+          <img height="25%" width="25%" src="/static/assets/img/Image-Extractor.png"/>
       </header>
       <div id="main">
         <div id="content" class="row">
@@ -24,6 +30,10 @@
           {% block footer %}
           <div class="row">
             <!-- footer goes here -->
+            <div class="text-center">
+              <a href="https://github.com/bradleygolden/gmail-image-extractor" target="_blank">
+              <i class="fa fa-5x fa-github"></i><span style="display:block;">View Source</span></div>
+            </a>
           </div>
           {% end %}
         </div>
