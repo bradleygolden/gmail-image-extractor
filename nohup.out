@@ -1,0 +1,11 @@
+WARNING:tornado.access:404 GET /favicon.ico (98.226.200.30) 0.66ms
+  35:48.57 imap.googlemail.com reader last 20 log messages:
+WARNING:tornado.access:404 GET http://www.google.com/ (219.82.240.243) 0.94ms
+WARNING:tornado.access:404 GET http://www.w3.org/ (219.82.240.243) 0.76ms
+WARNING:tornado.access:404 GET http://www.google.com/ (222.171.178.24) 0.87ms
+WARNING:tornado.access:404 GET http://dx.doi.org/ (221.212.176.24) 0.76ms
+WARNING:tornado.access:404 GET http://dx.doi.org/ (219.217.246.24) 0.72ms
+WARNING:tornado.access:404 GET /favicon.ico (98.226.200.30) 0.65ms
+WARNING:tornado.access:404 GET /apple-touch-icon-precomposed.png (98.226.200.30) 0.61ms
+WARNING:tornado.access:404 GET /apple-touch-icon.png (98.226.200.30) 0.61ms
+WARNING:tornado.access:404 GET /favicon.ico (98.226.200.30) 0.65ms

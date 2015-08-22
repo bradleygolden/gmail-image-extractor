@@ -42,7 +42,7 @@ class Application(tornado.web.Application):
             (r"/extractor", ExtractorHandler),
             (r"/ws", SocketHandler),
             (r'/download/(.*)', tornado.web.StaticFileHandler,
-             {'path': '/Users/bradleygolden/Gmail-Image-Extractor/download'}),
+             {'path': config.root_path + '/Gmail-Image-Extractor/download'}),
         ]
 
         settings = dict(
@@ -280,7 +280,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "link": u"""<a href="{0}"
                                         target="_blank" download>"""
                                         "Click Here to Download Your Gmail Images"
-                                        "</a><span> (The link to download your images will be available for"
+                                        "</a><span> (The link to download your images will be "
+                                        "available for"
                                         " {2} {1} or <a id=""remove-now"" href=""#"">"
                                         "remove the link now</a>"
                                         ")</span>"
