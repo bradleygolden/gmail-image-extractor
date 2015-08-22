@@ -9,3 +9,271 @@ WARNING:tornado.access:404 GET /favicon.ico (98.226.200.30) 0.65ms
 WARNING:tornado.access:404 GET /apple-touch-icon-precomposed.png (98.226.200.30) 0.61ms
 WARNING:tornado.access:404 GET /apple-touch-icon.png (98.226.200.30) 0.61ms
 WARNING:tornado.access:404 GET /favicon.ico (98.226.200.30) 0.65ms
+[I 150822 05:52:08 web:1908] 304 GET / (98.226.200.30) 14.44ms
+[I 150822 05:52:08 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 7.67ms
+[I 150822 05:52:08 web:1908] 304 GET /static/assets/img/preview.gif (98.226.200.30) 16.97ms
+[I 150822 05:53:23 web:1908] 200 GET / (52.4.29.156) 5.61ms
+[I 150822 05:53:29 web:1908] 200 GET / (98.226.200.30) 5.70ms
+[I 150822 05:53:29 web:1908] 200 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 1.74ms
+[I 150822 05:53:30 web:1908] 200 GET /static/assets/img/preview.gif (98.226.200.30) 788.24ms
+[W 150822 05:53:30 web:1908] 404 GET /favicon.ico (98.226.200.30) 3.43ms
+[I 150822 05:53:44 web:1908] 302 GET /login (98.226.200.30) 0.82ms
+[I 150822 05:53:44 web:1908] 302 GET /auth/login (98.226.200.30) 1.03ms
+[I 150822 05:53:47 client:1989] Received token response with no refresh_token. Consider reauthenticating with approval_prompt='force'.
+[I 150822 05:53:47 client:2000] Successfully retrieved access token
+[I 150822 05:53:47 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 05:53:47 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 05:53:47 web:1908] 302 GET /auth/login?code=4/2nDGuuauRSQE-fjWqhWovIw4uoFkKDegwdraF9kAWKI (98.226.200.30) 348.52ms
+[I 150822 05:53:47 web:1908] 200 GET /extractor (98.226.200.30) 8.87ms
+[I 150822 05:53:47 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440222247412 (98.226.200.30) 0.77ms
+[I 150822 05:53:53 client:857] Revoking token
+[I 150822 05:53:53 web:1908] 302 GET /logout (98.226.200.30) 229.95ms
+[I 150822 05:53:54 web:1908] 304 GET / (98.226.200.30) 5.87ms
+[I 150822 05:54:03 web:1908] 304 GET / (98.226.200.30) 5.35ms
+[I 150822 06:03:16 web:1908] 304 GET / (98.226.200.30) 5.68ms
+[I 150822 06:03:16 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 0.77ms
+[I 150822 06:03:17 web:1908] 200 GET /static/assets/img/preview.gif (98.226.200.30) 552.71ms
+[I 150822 06:04:21 web:1908] 302 GET /login (98.226.200.30) 0.68ms
+[I 150822 06:04:21 web:1908] 302 GET /auth/login (98.226.200.30) 0.87ms
+[I 150822 06:04:25 client:2000] Successfully retrieved access token
+[I 150822 06:04:25 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 06:04:25 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 06:04:25 web:1908] 302 GET /auth/login?code=4/JXoNPTwhV9TUtcM1X7sOqA1WYbndv3TrRb0WPEjNwJ8 (98.226.200.30) 423.59ms
+[I 150822 06:04:26 web:1908] 200 GET /extractor (98.226.200.30) 12.84ms
+[I 150822 06:04:26 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440222885780 (98.226.200.30) 1.00ms
+Traceback (most recent call last):
+  File "webapp.py", line 16, in <module>
+    from gmailextract.extractor import GmailImageExtractor
+  File "/home/bgolde5/gmail-image-extractor/gmail-image-extractor/gmailextract/extractor.py", line 9, in <module>
+    import pygmail.errors
+ImportError: No module named pygmail.errors
+[I 150822 06:08:18 web:1908] 304 GET / (98.226.200.30) 11.15ms
+[I 150822 06:08:18 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 5.16ms
+[I 150822 06:08:19 web:1908] 200 GET /static/assets/img/preview.gif (98.226.200.30) 807.69ms
+[I 150822 06:08:37 web:1908] 302 GET /login (98.226.200.30) 0.68ms
+[I 150822 06:08:37 web:1908] 302 GET /auth/login (98.226.200.30) 1.10ms
+[I 150822 06:08:42 client:2000] Successfully retrieved access token
+[I 150822 06:08:42 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 06:08:42 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 06:08:42 web:1908] 302 GET /auth/login?code=4/4p5tzcxK97kULy0iEq33UDL6zrrnrU6dTeIIX4Ebflc (98.226.200.30) 366.87ms
+[I 150822 06:08:42 web:1908] 200 GET /extractor (98.226.200.30) 11.09ms
+[I 150822 06:08:42 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440223142605 (98.226.200.30) 0.77ms
+[I 150822 06:08:49 web:1908] 200 GET /download/chicagoyw@gmail.com.zip (98.226.200.30) 1.62ms
+[I 150822 06:11:41 client:857] Revoking token
+[I 150822 06:11:41 web:1908] 302 GET /logout (98.226.200.30) 147.32ms
+[I 150822 06:11:41 web:1908] 304 GET / (98.226.200.30) 5.47ms
+[I 150822 06:13:31 web:1908] 200 GET / (98.226.200.30) 5.86ms
+[I 150822 06:13:31 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 1.55ms
+[I 150822 06:13:31 web:1908] 304 GET /static/assets/img/preview.gif (98.226.200.30) 14.57ms
+[I 150822 06:13:51 web:1908] 302 GET /login (98.226.200.30) 0.83ms
+[I 150822 06:13:51 web:1908] 302 GET /auth/login (98.226.200.30) 0.96ms
+[I 150822 06:13:57 client:2000] Successfully retrieved access token
+[I 150822 06:13:57 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 06:13:57 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 06:13:57 web:1908] 302 GET /auth/login?code=4/QUq2rbi-6KNXNuX3rmyWQc64kTKONV4mwCssrq7qQfA (98.226.200.30) 336.74ms
+[I 150822 06:13:57 web:1908] 200 GET /extractor (98.226.200.30) 11.40ms
+[I 150822 06:13:57 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440223457389 (98.226.200.30) 1.58ms
+[I 150822 06:26:51 client:857] Revoking token
+[I 150822 06:26:51 web:1908] 302 GET /logout (98.226.200.30) 133.80ms
+[I 150822 06:26:51 web:1908] 200 GET / (98.226.200.30) 5.62ms
+[I 150822 06:26:51 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 1.61ms
+[I 150822 06:26:51 web:1908] 304 GET /static/assets/img/preview.gif (98.226.200.30) 12.60ms
+[I 150822 06:29:50 web:1908] 200 GET / (166.175.190.96) 5.52ms
+[I 150822 06:29:50 web:1908] 200 GET /static/assets/img/Image-Extractor.png (166.175.190.96) 73.50ms
+[I 150822 06:29:53 web:1908] 200 GET /static/assets/img/preview.gif (166.175.190.96) 2874.08ms
+[W 150822 06:29:54 web:1908] 404 GET /favicon.ico (166.175.190.96) 2.37ms
+[I 150822 06:30:00 web:1908] 302 GET /login (98.226.200.30) 0.65ms
+[I 150822 06:30:00 web:1908] 302 GET /auth/login (98.226.200.30) 0.80ms
+[I 150822 06:30:07 client:2000] Successfully retrieved access token
+[I 150822 06:30:07 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 06:30:07 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 06:30:07 web:1908] 302 GET /auth/login?code=4/IHMqvVk8GgYATO51FhOrJYjFcW_-5yyCwXfjB_gDGn8 (98.226.200.30) 361.94ms
+[I 150822 06:30:07 web:1908] 200 GET /extractor (98.226.200.30) 13.06ms
+[I 150822 06:30:07 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440224428326 (98.226.200.30) 1.56ms
+[I 150822 06:30:08 web:1908] 302 GET /login (166.175.190.96) 0.57ms
+[I 150822 06:30:08 web:1908] 302 GET /auth/login (166.175.190.96) 0.83ms
+[I 150822 06:30:37 web:1908] 304 GET / (98.226.200.30) 7.00ms
+[I 150822 06:30:38 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 0.77ms
+[I 150822 06:30:38 web:1908] 200 GET /static/assets/img/preview.gif (98.226.200.30) 575.47ms
+[I 150822 06:30:47 client:857] Revoking token
+[I 150822 06:30:47 web:1908] 302 GET /logout (98.226.200.30) 114.66ms
+[I 150822 06:30:47 web:1908] 304 GET / (98.226.200.30) 4.42ms
+[I 150822 06:30:49 client:2000] Successfully retrieved access token
+[I 150822 06:30:49 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 06:30:49 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 06:30:49 web:1908] 302 GET /auth/login?code=4/ZwvXhT5ZUO0KjiMDzccZiqB4JSDCXMBqlEAISmCo5gM (166.175.190.96) 444.38ms
+[I 150822 06:30:49 web:1908] 200 GET /extractor (166.175.190.96) 11.41ms
+[I 150822 06:30:49 web:1908] 200 GET /static/assets/img/Image-Extractor.png (166.175.190.96) 37.81ms
+[I 150822 06:30:50 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440224467837 (166.175.190.96) 1.56ms
+[I 150822 06:31:08 web:1908] 302 GET /login (98.226.200.30) 0.71ms
+[I 150822 06:31:08 web:1908] 302 GET /auth/login (98.226.200.30) 0.82ms
+[I 150822 06:31:15 web:1908] 302 GET /auth/login?error=access_denied (98.226.200.30) 0.84ms
+[I 150822 06:31:20 web:1908] 200 GET /extractor (166.175.190.96) 8.11ms
+[I 150822 06:31:20 web:1908] 200 GET /static/assets/img/Image-Extractor.png (166.175.190.96) 66.65ms
+[I 150822 06:31:21 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440224498518 (166.175.190.96) 1.51ms
+[I 150822 06:31:59 web:1908] 200 GET / (166.175.190.96) 13.49ms
+[I 150822 06:32:00 web:1908] 200 GET /static/assets/img/Image-Extractor.png (166.175.190.96) 42.25ms
+[I 150822 06:32:02 web:1908] 200 GET /static/assets/img/preview.gif (166.175.190.96) 2431.06ms
+[I 150822 06:32:05 web:1908] 302 GET /login (166.175.190.96) 0.80ms
+[I 150822 06:32:06 web:1908] 302 GET /auth/login (166.175.190.96) 0.93ms
+[I 150822 06:32:06 client:1989] Received token response with no refresh_token. Consider reauthenticating with approval_prompt='force'.
+[I 150822 06:32:06 client:2000] Successfully retrieved access token
+[I 150822 06:32:06 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 06:32:06 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 06:32:06 web:1908] 302 GET /auth/login?code=4/abz9xaZZCKo5PO8ju4r-5bHOVYD8-wvIwXE5M6lgx3k (166.175.190.96) 345.23ms
+[I 150822 06:32:06 web:1908] 200 GET /extractor (166.175.190.96) 11.77ms
+[I 150822 06:32:07 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440224544201 (166.175.190.96) 1.72ms
+[I 150822 06:33:47 web:1908] 304 GET /extractor (166.175.190.96) 12.80ms
+[I 150822 06:33:47 web:1908] 304 GET /static/assets/img/Image-Extractor.png (166.175.190.96) 0.84ms
+[I 150822 06:33:48 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440224645346 (166.175.190.96) 1.48ms
+[I 150822 06:36:24 web:1908] 200 GET / (98.226.200.30) 5.90ms
+[I 150822 06:36:24 web:1908] 200 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 1.89ms
+[I 150822 06:36:26 web:1908] 200 GET /static/assets/img/preview.gif (98.226.200.30) 1186.74ms
+[I 150822 06:36:58 web:1908] 302 GET /login (98.226.200.30) 0.70ms
+[I 150822 06:36:58 web:1908] 302 GET /auth/login (98.226.200.30) 0.89ms
+[I 150822 06:37:06 client:2000] Successfully retrieved access token
+[I 150822 06:37:06 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 06:37:06 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 06:37:06 web:1908] 302 GET /auth/login?code=4/gYHRCZfaPLFNMKyUsGtdHdHhlaDLVSNzgy793ShkqIk (98.226.200.30) 391.39ms
+[I 150822 06:37:07 web:1908] 200 GET /extractor (98.226.200.30) 10.51ms
+[I 150822 06:37:07 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440224846883 (98.226.200.30) 0.82ms
+[I 150822 06:37:21 web:1908] 200 GET /download/chicagoyw@gmail.com.zip (98.226.200.30) 1.68ms
+[I 150822 06:37:44 client:857] Revoking token
+[I 150822 06:37:45 web:1908] 302 GET /logout (98.226.200.30) 143.39ms
+[I 150822 06:37:45 web:1908] 304 GET / (98.226.200.30) 5.25ms
+  47:41.36 imap.googlemail.com reader last 20 log messages:
+  49:09.27 imap.googlemail.com reader last 20 log messages:
+  00:24.36 imap.googlemail.com reader last 20 log messages:
+  20:20.27 imap.googlemail.com reader last 20 log messages:
+[I 150822 13:27:02 web:1908] 200 GET / (98.226.200.30) 6.91ms
+[I 150822 13:27:02 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 1.77ms
+[I 150822 13:27:02 web:1908] 304 GET /static/assets/img/preview.gif (98.226.200.30) 12.45ms
+[W 150822 13:27:02 web:1908] 404 GET /favicon.ico (98.226.200.30) 3.49ms
+[I 150822 14:39:13 web:1908] 200 GET / (66.102.6.254) 6.14ms
+[I 150822 14:39:13 web:1908] 200 GET /static/assets/img/Image-Extractor.png (66.102.6.254) 13.07ms
+[I 150822 14:39:13 web:1908] 200 GET /static/assets/img/preview.gif (66.102.6.194) 172.15ms
+[W 150822 14:39:17 web:1908] 404 GET /favicon.ico (66.102.6.254) 3.57ms
+[I 150822 14:39:24 web:1908] 302 GET /login (66.102.6.199) 0.64ms
+[I 150822 14:39:25 web:1908] 302 GET /auth/login (66.102.6.199) 0.90ms
+[I 150822 14:39:33 client:2000] Successfully retrieved access token
+[I 150822 14:39:33 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 14:39:33 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 14:39:33 web:1908] 302 GET /auth/login?code=4/pzIeK4dFTgA0JQkGz69oTpddeUUQ2AWajmii1crKLQQ (66.102.6.194) 365.26ms
+[I 150822 14:39:33 web:1908] 200 GET /extractor (66.102.6.194) 8.89ms
+[I 150822 14:39:34 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440253794059 (66.102.6.194) 1.49ms
+[I 150822 14:42:32 client:1989] Received token response with no refresh_token. Consider reauthenticating with approval_prompt='force'.
+[I 150822 14:42:32 client:2000] Successfully retrieved access token
+[I 150822 14:42:32 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 14:42:32 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 14:42:32 web:1908] 302 GET /auth/login?code=4/pHgCJ05QaSGHEYfvi0pMTMEbBf_-oxF3X0zjqkMoYkY (66.102.6.254) 353.89ms
+[I 150822 14:42:33 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440253972812 (66.102.6.254) 2.02ms
+[I 150822 15:16:36 web:1908] 304 GET / (98.226.200.30) 6.87ms
+[I 150822 15:16:36 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 0.85ms
+[I 150822 15:16:36 web:1908] 304 GET /static/assets/img/preview.gif (98.226.200.30) 16.64ms
+[W 150822 15:16:36 web:1908] 404 GET /favicon.ico (98.226.200.30) 3.52ms
+[I 150822 15:16:45 web:1908] 200 GET / (98.226.200.30) 6.49ms
+[I 150822 15:16:45 web:1908] 200 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 1.97ms
+[I 150822 15:16:46 web:1908] 200 GET /static/assets/img/preview.gif (98.226.200.30) 583.32ms
+[W 150822 15:16:46 web:1908] 404 GET /favicon.ico (98.226.200.30) 3.70ms
+[I 150822 15:18:47 web:1908] 302 GET /login (98.226.200.30) 0.92ms
+[I 150822 15:18:47 web:1908] 302 GET /auth/login (98.226.200.30) 0.97ms
+[I 150822 15:18:47 client:1989] Received token response with no refresh_token. Consider reauthenticating with approval_prompt='force'.
+[I 150822 15:18:47 client:2000] Successfully retrieved access token
+[I 150822 15:18:47 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 15:18:47 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 15:18:47 web:1908] 302 GET /auth/login?code=4/LalZDP5jeAR6zoU1-z2Py5Vu6iiEQSyUgARDbJzyLeQ (98.226.200.30) 365.69ms
+[I 150822 15:18:48 web:1908] 200 GET /extractor (98.226.200.30) 10.36ms
+[I 150822 15:18:48 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440256147143 (98.226.200.30) 1.59ms
+  22:04.99 imap.googlemail.com reader last 20 log messages:
+  25:59.74 imap.googlemail.com reader last 20 log messages:
+[I 150822 15:42:38 web:1908] 200 GET / (24.12.75.89) 53.09ms
+[I 150822 15:42:39 web:1908] 200 GET /static/assets/img/Image-Extractor.png (24.12.75.89) 22.29ms
+[I 150822 15:42:42 web:1908] 302 GET /login (24.12.75.89) 0.74ms
+[I 150822 15:42:42 web:1908] 302 GET /auth/login (24.12.75.89) 6.67ms
+[I 150822 15:42:43 client:1989] Received token response with no refresh_token. Consider reauthenticating with approval_prompt='force'.
+[I 150822 15:42:43 client:2000] Successfully retrieved access token
+[I 150822 15:42:43 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 15:42:43 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 15:42:43 web:1908] 302 GET /auth/login?code=4/rdLoBymywt1M0YmysMu6tfw-XyJnOlgfLRfzG3-_ZYI (24.12.75.89) 660.12ms
+[I 150822 15:42:44 web:1908] 200 GET /extractor (24.12.75.89) 22.67ms
+[I 150822 15:42:44 web:1908] 200 GET /static/assets/img/preview.gif (24.12.75.89) 4788.25ms
+[I 150822 15:42:45 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440257583861 (24.12.75.89) 3.39ms
+[W 150822 15:44:23 web:1908] 404 GET /favicon.ico (24.12.75.89) 4.76ms
+[I 150822 15:44:31 web:1908] 200 GET /download/golden.bradley@gmail.com.zip (98.226.200.30) 177343.47ms
+[I 150822 15:45:10 web:1908] 200 GET /download/codyjroberts@gmail.com.zip (24.12.75.89) 2.27ms
+[I 150822 15:46:36 web:1908] 304 GET /extractor (24.12.75.89) 23.24ms
+[I 150822 15:46:36 web:1908] 304 GET /static/assets/img/Image-Extractor.png (24.12.75.89) 1.81ms
+[I 150822 15:46:37 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440257816029 (24.12.75.89) 1.52ms
+[I 150822 15:48:33 client:857] Revoking token
+[I 150822 15:48:33 web:1908] 302 GET /logout (98.226.200.30) 139.92ms
+[I 150822 15:48:33 web:1908] 304 GET / (98.226.200.30) 7.31ms
+[I 150822 15:48:59 web:1908] 302 GET /login (98.226.200.30) 0.81ms
+[I 150822 15:48:59 web:1908] 302 GET /auth/login (98.226.200.30) 0.85ms
+[I 150822 15:49:12 web:1908] 304 GET / (98.226.200.30) 7.65ms
+[I 150822 15:49:13 web:1908] 200 GET / (98.226.200.30) 17.75ms
+[I 150822 15:49:28 web:1908] 302 GET /login (98.226.200.30) 0.76ms
+[I 150822 15:49:28 web:1908] 302 GET /auth/login (98.226.200.30) 0.85ms
+[I 150822 15:49:32 client:2000] Successfully retrieved access token
+[I 150822 15:49:32 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 15:49:32 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 15:49:32 web:1908] 302 GET /auth/login?code=4/alaL4rfniRnjp9_5Nm-Y7W7ncPxXrMclT80TnqXrM-8 (98.226.200.30) 502.44ms
+[I 150822 15:49:32 web:1908] 304 GET /extractor (98.226.200.30) 16.20ms
+[I 150822 15:49:32 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440257991789 (98.226.200.30) 0.86ms
+[I 150822 15:50:46 client:857] Revoking token
+[I 150822 15:50:46 web:1908] 302 GET /logout (98.226.200.30) 132.57ms
+[I 150822 15:50:46 web:1908] 304 GET / (98.226.200.30) 5.72ms
+[I 150822 15:50:47 web:1908] 302 GET /login (98.226.200.30) 0.64ms
+[I 150822 15:50:47 web:1908] 302 GET /auth/login (98.226.200.30) 0.81ms
+[I 150822 15:50:51 client:2000] Successfully retrieved access token
+[I 150822 15:50:51 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 15:50:51 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 15:50:51 web:1908] 302 GET /auth/login?code=4/ACqG2BARNl2vs9B_h0ZILo-i6Efl5DxgB3qKYTdNMhs (98.226.200.30) 363.03ms
+[I 150822 15:50:51 web:1908] 304 GET /extractor (98.226.200.30) 11.42ms
+[I 150822 15:50:52 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440258070915 (98.226.200.30) 0.84ms
+  55:24.65 imap.googlemail.com reader last 20 log messages:
+  55:24.72 imap.googlemail.com reader last 20 log messages:
+[W 150822 15:56:55 web:1908] 404 GET /extractor/download/:email (54.165.66.184) 5.15ms
+[W 150822 15:57:04 web:1908] 404 GET /download/<your (52.0.190.149) 1.65ms
+[W 150822 15:57:20 web:1908] 404 GET /download/codyjroberts@gmail.com.zip (24.12.75.89) 1.45ms
+[I 150822 15:58:44 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440258543031 (24.12.75.89) 1.82ms
+[I 150822 16:01:46 web:1908] 200 GET /download/codyjroberts@gmail.com.zip (24.12.75.89) 7425.02ms
+[I 150822 16:04:05 client:857] Revoking token
+[I 150822 16:04:05 web:1908] 302 GET /logout (24.12.75.89) 135.61ms
+[I 150822 16:04:05 web:1908] 304 GET / (24.12.75.89) 6.56ms
+[I 150822 16:04:06 web:1908] 206 GET /static/assets/img/preview.gif (24.12.75.89) 17.71ms
+[I 150822 16:04:07 web:1908] 206 GET /static/assets/img/preview.gif (24.12.75.89) 1341.50ms
+[I 150822 16:04:09 web:1908] 302 GET /login (24.12.75.89) 0.65ms
+[I 150822 16:04:09 web:1908] 302 GET /auth/login (24.12.75.89) 0.84ms
+[I 150822 16:04:13 client:2000] Successfully retrieved access token
+[I 150822 16:04:13 discovery:195] URL being requested: GET https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest
+[I 150822 16:04:13 discovery:766] URL being requested: GET https://www.googleapis.com/oauth2/v2/userinfo?alt=json
+[I 150822 16:04:14 web:1908] 302 GET /auth/login?code=4/TTC7UlnhezQa2ko0sntksr2uJtNVcCIWhspFpmCof-g (24.12.75.89) 397.37ms
+[I 150822 16:04:14 web:1908] 304 GET /extractor (24.12.75.89) 14.17ms
+[I 150822 16:04:14 web:1908] 200 GET /static/assets/js/gmailextractor.js?_=1440258873435 (24.12.75.89) 1.75ms
+[I 150822 16:05:47 client:857] Revoking token
+[I 150822 16:05:48 web:1908] 302 GET /logout (98.226.200.30) 122.30ms
+[I 150822 16:05:48 web:1908] 304 GET / (98.226.200.30) 5.82ms
+[I 150822 16:05:48 web:1908] 200 GET / (98.226.200.30) 2.73ms
+[I 150822 16:05:48 web:1908] 200 GET / (98.226.200.30) 2.84ms
+[I 150822 16:05:48 web:1908] 200 GET / (98.226.200.30) 2.76ms
+[I 150822 16:05:48 web:1908] 200 GET / (98.226.200.30) 2.79ms
+[I 150822 16:07:39 client:857] Revoking token
+[I 150822 16:07:39 web:1908] 302 GET /logout (24.12.75.89) 140.81ms
+[I 150822 16:07:39 web:1908] 304 GET / (24.12.75.89) 4.41ms
+[E 150822 16:07:39 web:1496] Uncaught exception GET /ws (24.12.75.89)
+    HTTPServerRequest(protocol='http', host='uchar6.cs.uic.edu:8888', method='GET', uri='/ws', version='HTTP/1.1', remote_ip='24.12.75.89', headers={'Origin': 'http://uchar6.cs.uic.edu:8888', 'Upgrade': 'websocket', 'Accept-Language': 'en-US,en;q=0.8', 'Accept-Encoding': 'gzip, deflate, sdch', 'Sec-Websocket-Version': '13', 'Host': 'uchar6.cs.uic.edu:8888', 'Sec-Websocket-Key': 'BwT8KoqgeFU3kTaN/R/azg==', 'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 7077.134.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.156 Safari/537.36', 'Dnt': '1', 'Connection': 'Upgrade', 'Cookie': 'Bluestem_login.uic.edu_443_444=1440038363; access_token="2|1:0|10:1440259454|12:access_token|100:eWEyOS4xd0Y2WGxzRzNKQlJBcmF1a0d0c2xCTkJwZE5JdHUyZzFJZjJFeFZXcGdJTVZXSlBVZUZXTEZqWjRXSlJxZGFUTDRwMQ==|e51af018d12303f8b8760a88937298ac7b4f52e49db8e2f94c0b99dbae15bc8c"; user="2|1:0|10:1440259454|4:user|2812:eyJfbW9kdWxlIjogIm9hdXRoMmNsaWVudC5jbGllbnQiLCAidG9rZW5fZXhwaXJ5IjogIjIwMTUtMDgtMjJUMTc6MDQ6MTNaIiwgImFjY2Vzc190b2tlbiI6ICJ5YTI5LjF3RjZYbHNHM0pCUkFyYXVrR3RzbEJOQnBkTkl0dTJnMUlmMkV4VldwZ0lNVldKUFVlRldMRmpaNFdKUnFkYVRMNHAxIiwgInRva2VuX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvdG9rZW4iLCAiaW52YWxpZCI6IGZhbHNlLCAidG9rZW5fcmVzcG9uc2UiOiB7ImFjY2Vzc190b2tlbiI6ICJ5YTI5LjF3RjZYbHNHM0pCUkFyYXVrR3RzbEJOQnBkTkl0dTJnMUlmMkV4VldwZ0lNVldKUFVlRldMRmpaNFdKUnFkYVRMNHAxIiwgInRva2VuX3R5cGUiOiAiQmVhcmVyIiwgImV4cGlyZXNfaW4iOiAzNjAwLCAicmVmcmVzaF90b2tlbiI6ICIxL29OdlBGV3dwSnV5WDZLVjc4SFNqRU1BTVQ5REpOS3dJcXhsYUZwTWtoNU5JZ09ySkR0ZHVuNnpLNlhpQVRDS1QiLCAiaWRfdG9rZW4iOiAiZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNkltVmhOakE1TldJMFpqWTBNak0wTUdZelpqVmlZamN5WmpnelpUTTFOamM1Tm1SaU1HVm1ZekVpZlEuZXlKcGMzTWlPaUpoWTJOdmRXNTBjeTVuYjI5bmJHVXVZMjl0SWl3aVlYUmZhR0Z6YUNJNkluRlJXV3hOVEhFeWRVeHZOSFpyYzJoTVZFWXdOMUVpTENKaGRXUWlPaUl4TURrM05URTVOVFEyTlRNM0xXdHRhR2xzZERFeE5HMXJZbXh5ZEcxbGMzSTRORFl6YzNOdmJUaHZNamxrTG1Gd2NITXVaMjl2WjJ4bGRYTmxjbU52Ym5SbGJuUXVZMjl0SWl3aWMzVmlJam9pTVRBeE5UazVNREkxTVRjMU9ETTBPVGd3T1RNNUlpd2laVzFoYVd4ZmRtVnlhV1pwWldRaU9uUnlkV1VzSW1GNmNDSTZJakV3T1RjMU1UazFORFkxTXpjdGEyMW9hV3gwTVRFMGJXdGliSEowYldWemNqZzBOak56YzI5dE9HOHlPV1F1WVhCd2N5NW5iMjluYkdWMWMyVnlZMjl1ZEdWdWRDNWpiMjBpTENKbGJXRnBiQ0k2SW1OdlpIbHFjbTlpWlhKMGMwQm5iV0ZwYkM1amIyMGlMQ0pwWVhRaU9qRTBOREF5TlRnNE56SXNJbVY0Y0NJNk1UUTBNREkyTWpRM01uMC5PS2JEYXN3aF9sNlR3Y3AtYWpIOGx2d1BRVWJzLXo0b19GZnd4OE9QTml1aWNra2ZNTWJod2pQUHRESFZSckluVUtJcnhPS1gza1h6THhmOHNYdEJ6M3N2RlZSbm56a0xtS1NLNFlxTjFwbGF6eDFPNlBKY25QQWNMMUhIenVYdy1zT2E3RW5FZG9hcUJwSFF3TGgxOGwyMVA1T1hmaVpYdnFwdjZUbHQyNTVZVnQ5NzJMZW5BdktzY3hVc0pydzFzNmpkYzRUWUxsdllRdkhFdXNxVjNxaGxsM1lKaElCQVA0NG80UXYyalJjQnhCSmg5eVFkcldoc3F6RXdrR2lrV3ZIMy14LU9EWXFfMkVPZm5IMFBfLXFLeEhQTDFTSl9XZkdnRHlUOEFrUGVtOU01eDhvMUY5YXJmckFUZ2V1NmhjX1NJY196QWY1OUo3VmppWVFyZkEifSwgImNsaWVudF9pZCI6ICIxMDk3NTE5NTQ2NTM3LWttaGlsdDExNG1rYmxydG1lc3I4NDYzc3NvbThvMjlkLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwgImlkX3Rva2VuIjogeyJhdWQiOiAiMTA5NzUxOTU0NjUzNy1rbWhpbHQxMTRta2JscnRtZXNyODQ2M3Nzb204bzI5ZC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsICJpc3MiOiAiYWNjb3VudHMuZ29vZ2xlLmNvbSIsICJlbWFpbF92ZXJpZmllZCI6IHRydWUsICJhdF9oYXNoIjogInFRWWxNTHEydUxvNHZrc2hMVEYwN1EiLCAiZXhwIjogMTQ0MDI2MjQ3MiwgImF6cCI6ICIxMDk3NTE5NTQ2NTM3LWttaGlsdDExNG1rYmxydG1lc3I4NDYzc3NvbThvMjlkLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwgImlhdCI6IDE0NDAyNTg4NzIsICJlbWFpbCI6ICJjb2R5anJvYmVydHNAZ21haWwuY29tIiwgInN1YiI6ICIxMDE1OTkwMjUxNzU4MzQ5ODA5MzkifSwgImNsaWVudF9zZWNyZXQiOiAid3dkZUFsbEJBSXc2cTlRMUpYYjJud1JfIiwgInJldm9rZV91cmkiOiAiaHR0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL3Jldm9rZSIsICJfY2xhc3MiOiAiT0F1dGgyQ3JlZGVudGlhbHMiLCAicmVmcmVzaF90b2tlbiI6ICIxL29OdlBGV3dwSnV5WDZLVjc4SFNqRU1BTVQ5REpOS3dJcXhsYUZwTWtoNU5JZ09ySkR0ZHVuNnpLNlhpQVRDS1QiLCAidXNlcl9hZ2VudCI6IG51bGx9|94316198792e266bd62b461fe5b21bb70ec3b38beaaecb64e1be5c08dd7414c4"; email="2|1:0|10:1440259454|5:email|32:Y29keWpyb2JlcnRzQGdtYWlsLmNvbQ==|2085f0f30c7e7ba34ef213fc8ef0313d0e75770ec49ee5208540c8428c348ec8"', 'Pragma': 'no-cache', 'Cache-Control': 'no-cache', 'Sec-Websocket-Extensions': 'permessage-deflate; client_max_window_bits'})
+    Traceback (most recent call last):
+      File "/home/bgolde5/gmail-image-extractor/local/lib/python2.7/site-packages/tornado/web.py", line 1369, in _stack_context_handle_exception
+        raise_exc_info((type, value, traceback))
+      File "/home/bgolde5/gmail-image-extractor/local/lib/python2.7/site-packages/tornado/stack_context.py", line 314, in wrapped
+        ret = fn(*args, **kwargs)
+      File "/home/bgolde5/gmail-image-extractor/local/lib/python2.7/site-packages/tornado/websocket.py", line 367, in on_connection_close
+        self.on_close()
+      File "webapp.py", line 378, in on_close
+        state['extractor'].remove_zip(email)
+    AttributeError: 'NoneType' object has no attribute 'remove_zip'
+[I 150822 16:09:10 web:1908] 200 GET / (98.226.200.30) 9.59ms
+[I 150822 16:09:58 autoreload:204] /home/bgolde5/gmail-image-extractor/gmail-image-extractor/config.py modified; restarting server
+[I 150822 16:10:00 web:1908] 200 GET / (98.226.200.30) 10.83ms
+[I 150822 16:10:00 web:1908] 304 GET /static/assets/img/Image-Extractor.png (98.226.200.30) 10.87ms
+[I 150822 16:10:00 web:1908] 304 GET /static/assets/img/preview.gif (98.226.200.30) 17.92ms

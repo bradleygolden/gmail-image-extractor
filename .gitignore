@@ -8,6 +8,10 @@ sample_images
 *.pyc
 *.pyo
 
+# Vim generated #
+#################
+*.swp
+
 # Compiled source #
 ###################
 *.com
@@ -45,3 +49,4 @@ sample_images
 .Trashes
 ehthumbs.db
 Thumbs.db
+*.out
