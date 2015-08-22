@@ -73,8 +73,8 @@ License
 -------
 Please see the file called [License](https://github.com/bradleygolden/gmail-image-extractor/blob/master/LICENSE.txt)
 
-Authors
--------
+Contributors
+------------
 Written by [Bradley Golden](https://bradleygolden.github.io) golden.bradley@gmail.com and Pete Snyder psnyde2@uic.edu for Chris Kanich at the University of Illinois at Chicago.
 
 Credits and Acknowledgements
@@ -82,55 +82,6 @@ Credits and Acknowledgements
 **Special thanks to the [Cloudsweeper](https://cloudsweeper.cs.uic.edu) team:**
 * Pete Snyder psnyde2@uic.edu
 * Chris Kanich ckanich@uic.edu
-
-Known Bugs
-------------
-
-##### Save functionality - Broken
-
-*This feature is ridden with issues*
-
-###### Current non-working solution
-
-* I originally tried to send all of the images in packets of 10 via web sockets to the front-end where the front-end combines the packets and puts them in one large zip file. The user can then choose where to download that file. This works intermittently depending on the browser being used and the file size. This doesn't work for large data sets generally 500mb or more. This method makes the solution to the problem difficult.
-    
-###### Next solution
-    
-* Create zip file on the server side, save it, and send file to front-end. File size will have to be limited roughly 400mb
-    
-* For larger image sets, the solution is still unknown...
-
-##### Other bugs
-
-  * The server does not allow for multiple users to run the image extractor at the same time.
-    * **Solution - Allow the server to run asynchronously**
-  * Gmails security settings make it difficult to access gmail account without manually changing settings in google's security console (this is a tricky process)
-    * **Solution - OAuth 2.0**
-  * Save functionality breaks after the first save
-    * **Solution - This bug hasn't been explored in detail yet**
-
-Upcoming Features
------------------
-  - [x] Display "Are you sure?" prompt to user prior deletion
-  - [ ] Save feature - mentioned above
-  - [ ] Create save progress bar - looks as if the app is broken, needs a progress bar
-  - [ ] Implement web logs for error tracking, etc.
-  - [ ] Use HMAC to secure image information in front-end
-    > Currently each image is uniquely associated with an id. This id is the memory location in hex format of the image's respective gmail attachment object. The next step for improving security is to hash the id's using HMAC to gurentee secured unqiue id's. The algorithm will look like the following:
-      ```
-      1. Get hex value of memory location from attachment [image id]
-      2. Get image name from attachment
-      3. Hash each image id using sha256
-      4. Create dict with hashed image id and image id for reference
-      5. Create HMAC key from hashed image id and secret
-      6. Send HMAC key and image name to front end
-      7. Add image name and HMAC key image thumbnail node name and id respectively
-      8. Add image name to preview modal title
-      ```
-      
-  - [ ] Create delete progress bar - images already disappear as they are erased, this is extra
-  - [ ] Display total images saved/deleted at the top of the page
-  - [ ] Feedback feature - allow users to send feedback
 
 Requirements
 ------------
