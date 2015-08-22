@@ -85,10 +85,4 @@ Credits and Acknowledgements
 
 Requirements
 ------------
- * [pygmail](https://github.com/snyderp/pygmail)
- * [tornado](http://www.tornadoweb.org/en/stable/)
- * [google-api-python-client](https://github.com/google/google-api-python-client)
- * [httplib2](https://github.com/jcgregorio/httplib2)
- * [imaplib2](https://github.com/bcoe/imaplib2)
- * [oauth2client](https://github.com/google/oauth2client)
- * [pillow](https://github.com/python-pillow/Pillow)
+Please see [requirements.txt](https://github.com/bradleygolden/gmail-image-extractor/blob/master/requirements.txt)
