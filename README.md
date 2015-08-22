@@ -10,7 +10,7 @@ This is version is unstable.  Please do not use unless you are familiar with wha
 
 Usage
 -----
-To use this program, follow the installation instructions below and login using your gmail account information. You will most likely need to lower your [gmail account security settings](https://myaccount.google.com/security). After logging in, this program will scan your gmail account for gif's, png's, and jpg's and populate them using a web interface. You will then have the option to save and delete those images from your gmail account through this interface.
+To use this program, follow the installation instructions below and login using your gmail account information. After logging in, this program will scan your gmail account for gif's, png's, and jpg's and populate them using a web interface. You will then have the option to save and delete those images from your gmail account through this interface.
 
 Installation and Configuration
 ------------------------------
