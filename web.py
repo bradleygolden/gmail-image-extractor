@@ -2,11 +2,6 @@
 
 import os.path
 import tornado
-import tornado.web
-import tornado.template
-import tornado.websocket
-import tornado.auth
-import tornado.escape
 import config
 
 import app.handlers
