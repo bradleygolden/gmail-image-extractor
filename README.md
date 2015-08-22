@@ -39,13 +39,13 @@ $ source bin/activate
 
 Install dependencies
 ```
-$ cd gmail-image-extractor
-$ pip install -r requirements.txt
+$(gmail-image-extractor) cd gmail-image-extractor
+$(gmail-image-extractor) pip install -r requirements.txt
 ```
 
 Run the server
 ```
-$ python webapp.py
+$(gmail-image-extractor) python webapp.py
 ```
 
 Checkout the app on your browser at
