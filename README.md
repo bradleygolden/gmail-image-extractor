@@ -75,7 +75,8 @@ Please see the file called [License](https://github.com/bradleygolden/gmail-imag
 
 Contributors
 ------------
-Written by [Bradley Golden](https://bradleygolden.github.io) golden.bradley@gmail.com and Pete Snyder psnyde2@uic.edu for Chris Kanich at the University of Illinois at Chicago.
+  * [Bradley Golden](https://bradleygolden.github.io) golden.bradley@gmail.com
+  * Pete Snyder psnyde2@uic.edu
 
 Credits and Acknowledgements
 ----------------------------
