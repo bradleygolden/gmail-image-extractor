@@ -1,7 +1,5 @@
 Gmail Image Extractor
 =====================
-[![Build Status](https://travis-ci.org/bradleygolden/gmail-image-extractor.svg?branch=bug-fixes)](https://travis-ci.org/bradleygolden/gmail-image-extractor)
-
 Gmail Image Extractor is a web application that offers gmail users the ability to scan their mailbox for images and save/delete those images. Please see the [documentation](https://github.com/bradleygolden/gmail-image-extractor/blob/master/DOCUMENTATION.md) for a more thorough explanation of this program.
 
 ![Alt Text](https://github.com/bradleygolden/gmail-image-extractor/blob/master/preview.gif?raw=true)
