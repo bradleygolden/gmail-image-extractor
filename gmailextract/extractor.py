@@ -264,6 +264,7 @@ class GmailImageExtractor(object):
 
             offset += per_page
 
+        self.attachment_count = attachment_count
         return attachment_count
 
     def order_by_g_id(self, selected_images):
@@ -540,15 +541,19 @@ class GmailImageExtractor(object):
             finally:
                 return
 
-    def get_attachment_count(self, some_messages):
+    def get_attachment_count(self, some_messages=None):
 
         attachment_count = 0
 
-        for a_message, some_attachments in some_messages.iteritems():
-            for an_attachment in some_attachments:
-                attachment_count += 1
+        if some_messages:
+            for a_message, some_attachments in some_messages.iteritems():
+                for an_attachment in some_attachments:
+                    attachment_count += 1
 
-        return attachment_count
+            return attachment_count
+
+        if self.attachment_count:
+            return self.attachment_count
 
     def do_save(self, messages_to_save, callback=None, max_packet_size=10):
         """
