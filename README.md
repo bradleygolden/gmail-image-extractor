@@ -43,6 +43,7 @@ Install dependencies
 ```
 $(gmail-image-extractor) cd gmail-image-extractor
 $(gmail-image-extractor) pip install -r requirements.txt
+$(gmail-image-extractor) pip install git+https://github.com/snyderp/pygmail
 ```
 
 Run the server
