@@ -1,4 +1,3 @@
-import tornado
 import config
 import base
 
