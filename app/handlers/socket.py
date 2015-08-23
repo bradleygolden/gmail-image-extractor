@@ -163,9 +163,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "<h3>Click Here to Download Your Gmail Images</h3>"
                                         "</a></br></br>"
                                         "<span>"
-                                        "Minutes left before your link dissapears or click the timer now to delete the link..."
+                                        "Minutes left before your link dissapears or click the "
+                                        "timer now to delete the link..."
                                         "</span></br>"
-                                        "<a id=""remove-now"" href=""#""><div id='circle' class='circle'><strong class='circle-text'>{2}</strong></div></a>"
+                                        "<a id=""remove-now"" href=""#"">"
+                                        "<div id='circle' class='circle'>"
+                                        "<strong class='circle-text'>{2}</strong></div></a>"
                                         "".format(download_path,
                                                   plural(u"minute",
                                                          config.zip_removal_countdown/60),
@@ -175,14 +178,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
                     def _remove_link():
                         email = self.get_secure_cookie('email')
-                        extractor.remove_zip(email, _save_status)
                         try:
-                            self.write_message({"ok": True,
-                                                "type": "removed-zip",
-                                                "msg": "Please check all attachments that"
-                                                " you want to remove from your Gmail account."})
+                            extractor.remove_zip(email, _save_status)
                         except:
-                            pass
+                            return
+                        self.write_message({"ok": True,
+                                            "type": "removed-zip",
+                                            "msg": "Please check all attachments that"
+                                            " you want to remove from your Gmail account."})
 
                     loop = tornado.ioloop.IOLoop.instance()
                     # remove link and zip file after n min
@@ -193,7 +196,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         "<span> Failed to create zip file :( </span>"))
 
         email = self.get_secure_cookie('email')
-        extractor.save(msg, email, _save_status)
+        try:
+            extractor.save(msg, email, _save_status)
+        except:
+            pass
 
     def _handle_remove_zip(self, msg):
         extractor = state['extractor']
@@ -255,6 +261,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         # remove the user's zip file
-        email = self.get_secure_cookie('email')
-        state['extractor'].remove_zip(email)
+        try:
+            email = self.get_secure_cookie('email')
+        except:
+            pass
+        try:
+            state['extractor'].remove_zip(email)
+        except:
+            pass
         state['extractor'] = None

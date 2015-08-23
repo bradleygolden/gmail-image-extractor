@@ -8,6 +8,9 @@ class LogoutHandler(tornado.web.RequestHandler):
         user = self.get_secure_cookie('user')
         if user:
             credentials = client.OAuth2Credentials.from_json(user)
-            credentials.revoke(httplib2.Http())
+            try:
+                credentials.revoke(httplib2.Http())
+            except:
+                pass
             self.clear_all_cookies()
         self.redirect('/')
