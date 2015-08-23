@@ -374,7 +374,8 @@ class GmailImageExtractor(object):
         try:
             messages = self.parse_selected_images(msg)
         except:
-            print "Couldn't parse selected images."
+            # print "Couldn't parse selected images."
+            pass
 
         num_messages_changed, num_images_deleted = self.do_delete(messages, callback)
 
