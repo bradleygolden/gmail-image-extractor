@@ -8,7 +8,6 @@ Pillow==2.9.0
 pyasn1==0.1.8
 pyasn1-modules==0.0.7
 pycrypto==2.6.1
-pygmail==0.7
 requests==2.7.0
 rsa==3.2
 simple-crypt==4.1.7
