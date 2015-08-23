@@ -7,10 +7,10 @@ from hashlib import sha256
 import hmac
 import base64
 import pygmail.errors
-# from .fs import sanatize_filename, unique_filename
 from pygmail.account import Account
 import zipfile
 import time
+import thread
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
@@ -184,6 +184,22 @@ class GmailImageExtractor(object):
         # identify the attachment again)
         self.mapping = {}
         hit_limit = False
+        try:
+            # handle with multithread
+            return thread.start_new_thread(self.do_extract, hit_limit, per_page, offset,
+                                           num_messages, attachment_count, callback)
+        except:
+            # handle with single thread
+            return self.do_extract(hit_limit, per_page, offset, num_messages, attachment_count,
+                                   callback)
+
+    def do_extract(self, hit_limit, per_page, offset, num_messages,
+                   attachment_count, callback=None):
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
         while True and not hit_limit:
             _cb('message', offset + 1)
             messages = self.inbox.search("has:attachment", full=True,
