@@ -20,6 +20,7 @@ class Application(tornado.web.Application):
             (r"/logout", app.handlers.logout.LogoutHandler),
             (r"/auth/login", app.handlers.google_oauth.GoogleOAuth2LoginHandler),
             (r"/extractor", app.handlers.extractor.ExtractorHandler),
+            (r"/oauth_alert", app.handlers.google_oauth_alert.GoogleOAuth2LoginAlertHandler),
             (r"/ws", app.handlers.socket.SocketHandler),
             (r'/download/(.*)', tornado.web.StaticFileHandler,
              {'path': config.root_path + '/Gmail-Image-Extractor/download'}),
@@ -39,7 +40,7 @@ class Application(tornado.web.Application):
             xsrf_cookies=config.xsrf_cookies,
             google_oauth={"key": config.oauth2_client_id, "secret": config.oauth2_client_secret},
             default_handler_class=app.handlers.error.ErrorHandler,
-            default_handler_args= dict(status_code=404),
+            default_handler_args=dict(status_code=404),
         )
 
         tornado.web.Application.__init__(self, handlers, **settings)

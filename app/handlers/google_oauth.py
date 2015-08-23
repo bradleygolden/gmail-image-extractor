@@ -8,6 +8,14 @@ class GoogleOAuth2LoginHandler(tornado.web.RequestHandler,
                                tornado.auth.GoogleOAuth2Mixin):
     @tornado.gen.coroutine
     def get(self):
+
+        # check if user is already logged in
+        user = self.get_secure_cookie('user')
+        if user:
+            # create already logged in page and give user option to log out
+            self.redirect('/oauth_alert')
+            return
+
         flow = OAuth2WebServerFlow(client_id=self.settings['google_oauth']['key'],
                                    client_secret=self.settings['google_oauth']['secret'],
                                    scope=['email', 'https://mail.google.com'],
