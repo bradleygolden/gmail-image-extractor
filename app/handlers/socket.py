@@ -83,17 +83,13 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "msg": status_msg,
                                         "num": args[1]})
 
-            def _extract():
-                attachment_count = state['extractor'].extract(_status)
+            attachment_count = state['extractor'].extract(_status)
 
-                self.write_message({"ok": True,
-                                    "type": "download-complete",
-                                    "msg": "Succesfully found {0} {1}"
-                                    "".format(attachment_count, plural(u"image", attachment_count)),
-                                    "num": attachment_count})
-
-            loop = tornado.ioloop.IOLoop.instance()
-            loop.add_callback(_extract)
+            self.write_message({"ok": True,
+                                "type": "download-complete",
+                                "msg": "Succesfully found {0} {1}"
+                                "".format(attachment_count, plural(u"image", attachment_count)),
+                                "num": attachment_count})
 
     def _handle_delete(self, msg):
         extractor = state['extractor']
