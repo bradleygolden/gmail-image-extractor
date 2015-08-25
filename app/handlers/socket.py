@@ -40,6 +40,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         else:
             return
 
+    @tornado.web.asynchronous
     def _handle_connect(self, msg, callback=None):
 
         access_token = self.get_secure_cookie('access_token')
@@ -72,8 +73,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "type": "image",
                                         "msg_id": args[1],
                                         "img_id": args[2],
-                                        "enc_img": args[3],
-                                        "img_name": args[4]})
+                                        "img_name": args[3],
+                                        "enc_img": args[4]})
 
                 if args[0] == 'message':
                     status_msg = u"Fetching messages {1} - {2}".format(msg['simultaneous'],
@@ -83,17 +84,31 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "msg": status_msg,
                                         "num": args[1]})
 
-            def _extract():
-                attachment_count = state['extractor'].extract(_status)
 
-                self.write_message({"ok": True,
-                                    "type": "download-complete",
-                                    "msg": "Succesfully found {0} {1}"
-                                    "".format(attachment_count, plural(u"image", attachment_count)),
-                                    "num": attachment_count})
+            extractor = state['extractor']
+            num_messages = extractor.num_messages_with_attachments()
+            # TODO - find way to count # of attachments
+            attachment_count = 0
+            loop = tornado.ioloop.IOLoop.current()
+            loop.add_callback(callback=lambda: extractor.async_extract(_status))
 
-            loop = tornado.ioloop.IOLoop.instance()
-            loop.add_callback(_extract)
+            # def extract():
+                # attachment_count = state['extractor'].extract(_status)
+
+                # self.write_message({"ok": True,
+                                    # "type": "download-complete",
+                                    # "msg": "Succesfully found {0} {1}"
+                                    # "".format(attachment_count, plural(u"image", attachment_count)),
+                                    # "num": attachment_count})
+
+            # loop = tornado.ioloop.IOLoop.instance()
+            # loop.add_callback(callback=lambda: extract())
+            self.write_message({"ok": True,
+                "type": "download-complete",
+                "msg": "Succesfully found {0} {1}"
+                "".format(attachment_count, plural(u"image", attachment_count)),
+                "num": attachment_count})
+
 
     def _handle_delete(self, msg):
         extractor = state['extractor']

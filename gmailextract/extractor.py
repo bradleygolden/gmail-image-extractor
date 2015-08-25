@@ -7,10 +7,11 @@ from hashlib import sha256
 import hmac
 import base64
 import pygmail.errors
-# from .fs import sanatize_filename, unique_filename
 from pygmail.account import Account
 import zipfile
 import time
+import image
+import tornado
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
@@ -145,6 +146,118 @@ class GmailImageExtractor(object):
         limit = self.limit if self.limit > 0 else False
         gm_ids = self.inbox.search("has:attachment", gm_ids=True, limit=limit)
         return len(gm_ids)
+
+    def attachment_generator(self, messages):
+        """Generator for attachments in a given mailbox"""
+        offset = 0
+
+        outer = 0
+        inner = 0
+
+        for msg in messages:
+            for att in msg.attachments():
+                if att.type in ATTACHMENT_MIMES:
+                    msg_id = msg.gmail_id
+                    att_id, att_name, att_preview = self.att_details(att)
+
+                    yield msg_id, att_id, att_name, att_preview
+
+    def message_batch(self, offset, per_page):
+        messages = self.inbox.search("has:attachment", full=True,
+                                     limit=per_page, offset=offset)
+        offset += per_page
+        return messages, offset
+
+    #extractor.extract(_status)
+    def async_extract(self, callback=None):
+        """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
+        and sends them via websocket to the frontend.
+
+        Keyword Args:
+            callback -- An optional function that will be called with updates
+            about the image extraction process. If provided,
+            will be called with either the following arguments
+
+                        ('image', message id, image id, image name, image preview)
+                        when sending an image via websocket, where
+                        `message_id` is the unqiue id of the message,
+                        image_id is the unque id of a given image, and
+                        hmac key concatenates the message and image id.
+
+                        ('message', first)
+                        when fetching messages from Gmail, where `first` is the
+                        index of the current message being downloaded.
+
+        Returns:
+            The number of attachments found
+        """
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        num_messages = 0
+        attachment_count = 0
+        offset = 0
+        per_page = min(self.batch, self.limit) if self.limit else self.batch
+        self.mapping = {}
+        hit_limit = False
+
+        #callback to begin extraction process asyncronously
+        loop = tornado.ioloop.IOLoop.current()
+        loop.add_callback(callback=lambda: self.do_async_extract(num_messages, offset, per_page, callback));
+
+    def do_async_extract(self, num_messages, offset, per_page, callback=None):
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        # get messages for extraction, keep track of the offset for future batches
+        messages, offset = self.message_batch(offset, per_page)
+
+        #completed extraction process
+        if len(messages) == 0:
+            return
+
+        #generator that produces attachments from given messages
+        attachments = self.attachment_generator(messages)
+
+        loop = tornado.ioloop.IOLoop.current()
+        
+        # extract images one by one and send to frontend
+        self.extract_images(attachments, callback)
+
+        # get next batch of messages
+        loop.add_callback(callback=lambda: self.do_async_extract(num_messages, offset, per_page, callback))
+
+    def extract_images(self, images, callback=None):
+        def _cb(*args):
+            if callback:
+                callback(*args)
+        try:
+            msg_id, att_id, att_name, att_preview = images.next()
+
+            #send image to the frontend
+            _cb("image", msg_id, att_id, att_name, att_preview)
+
+            #recursively call fn to get remaining images if they exists
+            self.extract_images(images, callback)
+
+        except StopIteration:
+            pass
+
+    def att_details(self, att):
+
+        att_preview = None
+        try:
+            att_preview = self.get_resize_img(att.body(), att.type, 500)
+        except:
+            att_preview = att.body()
+
+        att_preview = base64.b64encode(att_preview)
+
+        return hex(id(att)), att.name(), att_preview
 
     def extract(self, callback=None):
         """Extracts images from Gmail messages, encodes them into strings,
