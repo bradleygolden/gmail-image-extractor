@@ -11,7 +11,7 @@ from oauth2client import client
 from apiclient.discovery import build
 from apiclient import errors
 import httplib2
-from gmailextract.extractor import GmailImageExtractor
+from extractor import GmailImageExtractor
 import config
 
 

@@ -1,6 +1,6 @@
 import os
 import tornado
-from gmailextract.extractor import GmailImageExtractor
+from app.objects.extractor import GmailImageExtractor
 import config
 
 attr_dir = os.path.dirname(os.path.abspath(__file__))

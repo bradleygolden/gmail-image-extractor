@@ -20,7 +20,7 @@ class Application(tornado.web.Application):
             (r"/login", app.handlers.login.LoginHandler),
             (r"/logout", app.handlers.logout.LogoutHandler),
             (r"/auth/login", app.handlers.google_oauth.GoogleOAuth2LoginHandler),
-            (r"/extractor", app.handlers.extractor.ExtractorHandler),
+            (r"/extractor", app.handlers.extract.ExtractHandler),
             (r"/oauth_alert", app.handlers.google_oauth_alert.GoogleOAuth2LoginAlertHandler),
             (r"/ws", app.handlers.socket.SocketHandler),
             (r'/download/(.*)', tornado.web.StaticFileHandler,

@@ -10,7 +10,6 @@ import pygmail.errors
 from pygmail.account import Account
 import zipfile
 import time
-import image
 import tornado
 
 

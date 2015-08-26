@@ -3,7 +3,7 @@ import main
 import login
 import logout
 import google_oauth
-import extractor
+import extract
 import socket
 import error
 import google_oauth_alert
