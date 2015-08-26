@@ -3,6 +3,7 @@
 config.py
 sample_images
 src
+*.lprof
 
 # Python generated #
 ####################

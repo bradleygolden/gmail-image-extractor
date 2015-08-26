@@ -27,10 +27,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             return
         elif msg['type'] == 'connect':
             self._handle_connect(msg)
-        # elif msg['type'] == 'sync':
-        #    self._handle_sync(msg)
-        # elif msg['type'] == 'confirm':
-        #    self._handle_confirmation(msg)
         elif msg['type'] == 'delete':
             self._handle_delete(msg)
         elif msg['type'] == 'save':
@@ -41,10 +37,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             return
 
     @tornado.web.asynchronous
+    @profile
     def _handle_connect(self, msg, callback=None):
 
         access_token = self.get_secure_cookie('access_token')
         email = self.get_secure_cookie('email')
+        num_messages = 0
 
         state['extractor'] = GmailImageExtractor(attr_dir, email,
                                                  access_token, limit=int(msg['limit']),
@@ -77,38 +75,24 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "enc_img": args[4]})
 
                 if args[0] == 'message':
-                    status_msg = u"Fetching messages {1} - {2}".format(msg['simultaneous'],
+                    status_msg = u"Scanning messages {1} of {2}".format(msg['simultaneous'],
                                                                        args[1], num_messages)
                     self.write_message({"ok": True,
                                         "type": "downloading",
                                         "msg": status_msg,
                                         "num": args[1]})
 
+                if args[0] == 'download-complete':
+                    attachment_count = args[1]
+                    self.write_message({"ok": True,
+                        "type": "download-complete",
+                        "msg": "Succesfully found {0} {1}"
+                        "".format(attachment_count, plural(u"image", attachment_count)),
+                        "num": attachment_count})
 
             extractor = state['extractor']
-            num_messages = extractor.num_messages_with_attachments()
-            # TODO - find way to count # of attachments
-            attachment_count = 0
             loop = tornado.ioloop.IOLoop.current()
             loop.add_callback(callback=lambda: extractor.async_extract(_status))
-
-            # def extract():
-                # attachment_count = state['extractor'].extract(_status)
-
-                # self.write_message({"ok": True,
-                                    # "type": "download-complete",
-                                    # "msg": "Succesfully found {0} {1}"
-                                    # "".format(attachment_count, plural(u"image", attachment_count)),
-                                    # "num": attachment_count})
-
-            # loop = tornado.ioloop.IOLoop.instance()
-            # loop.add_callback(callback=lambda: extract())
-            self.write_message({"ok": True,
-                "type": "download-complete",
-                "msg": "Succesfully found {0} {1}"
-                "".format(attachment_count, plural(u"image", attachment_count)),
-                "num": attachment_count})
-
 
     def _handle_delete(self, msg):
         extractor = state['extractor']
@@ -126,7 +110,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                     "gmail_id": args[3],
                                     "image_id": args[4]})
 
-        num_messages_changed, num_images_deleted = extractor.delete(msg, callback=_delete_status)
+        try:
+            num_messages_changed, num_images_deleted = extractor.delete(msg, callback=_delete_status)
+        except:
+            # couldn't complete delete
+            # this possibly occurred because the user tried to delete the same image twice
+            pass
         self.write_message({"ok": True,
                             "type": "finished",
                             "msg": u"Removed {0} {1} total from {2} {3}."

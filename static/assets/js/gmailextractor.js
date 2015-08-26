@@ -1,5 +1,7 @@
 jQuery(function ($) {
 
+	// TODO - Remove image thumbnails from frontend before sending to backend. Server callbacks are too slow..
+
 var prog_hidden = true,
 loc = window.location,
 $prog_container = $(".progress"),
@@ -10,7 +12,8 @@ $results_container = $(".results"),
 	// 	$submit = $("#submit"),
 	// 	$auth_form = $("#auth-form"),
 	// 	$auth_fields = $auth_form.find(":input"),
-$alert = $(".alert"),
+$status = $(".status"),
+$download_link = $(".download-link"),
 timer = null,
 	// 	$sync_form = $("#sync-form"),
 	// 	$confim_form = $("#confirm-form"),
@@ -44,7 +47,7 @@ selected_imgs = [],
 			var params = JSON.stringify({
 				"type": "connect",
 				"limit": 0,
-				"simultaneous": 10,
+				"simultaneous": 1,
 				"rewrite": 1
 			});
 
@@ -78,7 +81,7 @@ selected_imgs = [],
 		return ('<div class="col-xs-6 col-md-3">' +
 								  '<div class="thumbnail">' +
 								  '<input class="img-checkbox" id="' + img_id +
-								  '" name="' + msg_id + '" type="checkbox" style="display:none;"">' +
+								  '" name="' + msg_id + '" type="checkbox" "">' +
 								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' +
 								  '<img src="' + img.src + '">' +
 								  '</a>' +
@@ -122,12 +125,12 @@ selected_imgs = [],
 	//used to display messages to the user
 	feedback = function (msg, additional_message) {
 
-		$alert.removeClass("alert-info").removeClass("alert-warning");
-		$alert.show();
+		$status.removeClass("alert-info").removeClass("alert-warning");
+		$status.show();
 
 		if (msg.ok) {
 
-			$alert.addClass("alert-info");
+			$status.addClass("alert-info");
 
 		} else {
 
@@ -137,19 +140,20 @@ selected_imgs = [],
 
 		if (additional_message) {
 
-			$alert.html("<p>" + msg.msg + "</p><p>" + additional_message + "</p>");
+			$status.html("<p>" + msg.msg + "</p><p>" + additional_message + "</p>");
 
-		}
-
-		else if (msg.link) {
-
-			$alert.html(msg.link);
 		}
 
 		else {
 
-			$alert.text(msg.msg);
+			$status.text(msg.msg);
 
+		}
+
+		if (msg.link) {
+			$download_link.addClass("alert-success");
+			$download_link.html(msg.link);
+			$download_link.show();
 		}
 
 		//display a circle progress timer for save link
@@ -292,55 +296,6 @@ selected_imgs = [],
 
 		$("#delete-modal").modal('hide');
 	});
-	//
-	// $auth_form.submit(function () {
-	//
-	// 	var params = JSON.stringify({
-	// 		"email": $email.val(),
-	// 		"pass": $pass.val(),
-	// 		"type": "connect",
-	// 		"limit": 0,
-	// 		"simultaneous": 10,
-	// 		"rewrite": 1
-	// 	});
-	//
-	// 	$auth_fields.attr("disabled", "disabled");
-	// 	ws.send(params);
-	//
-	// 	return false;
-	// });
-	//
-	// $sync_form.submit(function () {
-	//
-	// 	var params = JSON.stringify({
-	// 		"type": "sync"
-	// 	});
-	//
-	// 	$(this).find("[type=submit]").attr("disabled", "disabled");
-	// 	ws.send(params);
-	//
-	// 	return false;
-	// });
-	//
-	//
-	// $confim_form.submit(function () {
-	//
-	// 	var params = JSON.stringify({
-	// 		"type": "confirm",
-	// 	});
-	//
-	// 	$(this).find("button").attr("disabled", "disabled");
-	// 	ws.send(params);
-	//
-	// 	return false;
-	// });
-	//
-	// $no_confirm_bttn.click(function () {
-	//
-	// 	feedback({msg: "Thank you for your participation in this study."});
-	// 	$confim_form.fadeOut();
-	// 	return false;
-	// });
 
 	//helper function that counts the number of images that are selected
 	var count_checked = function() {
@@ -399,128 +354,7 @@ selected_imgs = [],
 
 		}
 	};
-	//
-	// packets_complete = function(msg){
-	//
-	// 	if(build_image_packets(msg.packet_count, msg.total_images, msg.images, msg.image_names)){
-	// 		hide_progress();
-	// 		return true;
-	// 	}
-	// 	else
-	// 		return false;
-	// };
-	//
-	// build_image_packets = function(curr_count, total_images, images, names){
-	//
-	// 	if (curr_count == 0 || total_images == 0 || images.length == 0 || names.length == 0){
-	// 		return;
-	// 	}
-	//
-	// 	if (curr_count == total_images){
-	//
-	// 		for (i = 0; i < names.length; i++){
-	// 			image_names.push(names[i]);
-	// 			encoded_images.push(images[i]);
-	// 		}
-	//
-	// 		return true;
-	// 	}
-	//
-	// 	else {
-	//
-	// 		for (i = 0; i < names.length; i++){
-	// 			image_names.push(names[i]);
-	// 			encoded_images.push(images[i]);
-	// 		}
-	// 		return false;
-	// 	}
-	// };
-	//
-	// function save_file(names, images)
-	// {
-	// 	if (names.length != images.length){
-	// 		console.error("Images names do not match up with the nubmer of images. They must be equal!");
-	// 		return;
-	// 	}
-	//
-	// 	var total_images = images.length;
-	// 	var zipped_images = 0;
-	// 	var count = 2;
-	// 	var prev = count;
-	// 	var duplicate_tag = "";
-	// 	var msg = {"ok": true, msg: "Creating zip file..."};
-	// 	feedback(msg);
-	//
-	// 	try {
-	// 		//create JSZip object
-	// 		var zip = new JSZip();
-	//
-	// 		//add images and their names to zip file
-	// 		for (var i = 0; i < images.length; i++)
-	// 		{
-	// 			try {
-	// 				//manange duplicate images
-	// 				while(zip.file(names[i]).name != null)
-	// 					{
-	// 						//console.log("duplicate image exists:", names[i]);
-	// 						//get img_type i.e. .jpg
-	// 						var img_type = names[i].slice(names[i].length - 4,names[i].length);
-	// 						//console.log("image extension:", img_type);
-	//
-	// 						//remove img_type image.jpg -> image
-	// 						names[i] = names[i].slice(0,names[i].length-4);
-	// 						//console.log("removed extension:", names[i]);
-	//
-	// 						//add a duplicate image tag
-	// 						names[i] = names[i] + "(" + count + ")";
-	// 						//console.log("duplicate tag added:", names[i]);
-	//
-	// 						//add image extension
-	// 						names[i] = names[i] + img_type;
-	// 						//console.log("image extension added:", names[i]);
-	//
-	// 						count++;
-	// 					}
-	// 			} catch (e){
-	// 				//do nothing here, there is no duplicate named zip object
-	// 			}
-	//
-	// 			count = 2;
-	// 			zip.file(names[i], images[i], {base64: true});
-	// 			zipped_images += 1;
-	// 			//console.log("zipped:", names[i], zipped_images, "total", total_images);
-	//
-	// 		}
-	//
-	// 		var content = null;
-	//
-	// 		var content = zip.generate({type:"blob"});
-	//
-	// 		console.log("zip file size", (content.size/1000000).toFixed(2) + "mb");
-	// 		//display os save dialoge using FileSaver.js
-	//
-	// 		msg.msg = "Zip file successfully created!";
-	// 		feedback(msg);
-	// 		saveAs(content, "gmail_images.zip");
-	// 	}
-	// 	catch (e){
-	// 		msg.msg = "Zip compilation failed...";
-	// 		msg.ok = false;
-	// 		feedback(msg);
-	// 		console.log("An error has occured during the zip process:", e);
-	// 	}
-	//
-	// 	//reset package size count
-	// 	pkg_image_count = 0;
-	//
-	// 	//reset selected image names
-	// 	image_names = [];
-	//
-	// 	//reset selected images
-	// 	encoded_images = [];
-	//
-	// };
-	//
+
 	$(document).on( "click", "input.img-checkbox", function() {
 
 		var img_info = [ $(this).attr("name"), $(this).attr("id") ];
@@ -575,6 +409,8 @@ selected_imgs = [],
 
 			case "connect":
 				feedback(msg);
+				if(msg.ok)
+					$images_menu.fadeIn();
 			break;
 
 			case "count":
@@ -586,14 +422,6 @@ selected_imgs = [],
 				update_results(msg.msg_id, msg.img_id, msg.enc_img);
 			break;
 
-			// case "image-packet":
-			// 	feedback(msg);
-			// 	update_progress(msg.packet_count, msg.total_images);
-			// 	if(packets_complete(msg)){
-			// 		save_file(image_names, encoded_images);
-			// 	}
-			// break;
-			//
 			case "downloading":
 				feedback(msg);
 			update_progress(msg.num, num_messages);
@@ -602,57 +430,22 @@ selected_imgs = [],
 			case "download-complete":
 				feedback(msg, "Please check all attachments that you want to remove from your Gmail account.");
 			hide_progress();
-			$images_menu.fadeIn();
-			$('.img-checkbox').show()
 			//$sync_form.fadeIn();
 			break;
 
 			case "saved-zip":
 				feedback(msg);
 				startTimer(parseInt(msg.time)); //30 minutes
+				break;
 
 			case "removed-zip":
-				feedback(msg);
+				$download_link.empty();
+				$download_link.hide();
+				break;
 
 			case "image-removed":
 				remove_image(msg.gmail_id, msg.image_id)
 			break;
-			//
-			// case "packet-progress":
-			// 	//feedback(msg);
-			// 	//update_progress(msg.num, msg.messages);
-			// break;
-			//
-			// case "file-checking":
-			// 	feedback(msg);
-			// update_progress();
-			// //$sync_form.fadeOut();
-			// break;
-			//
-			// case "file-checked":
-			// 	rewrite_total = msg.num;
-			// hide_progress();
-			// $alert.hide();
-			// $confim_form
-			// .fadeIn()
-			// .find("p")
-			// .text("Are you sure you want to remove " + rewrite_total + " images from your email account?  This action is irreversable.");
-			// break;
-			//
-			// case "removing":
-			// 	$confim_form.fadeOut();
-			// feedback(msg);
-			// update_progress(++rewrite_index, rewrite_total);
-			// break;
-			//
-			// case "removed":
-			// 	feedback(msg);
-			// break;
-			//
-			// case "finished":
-			// 	feedback(msg);
-			// hide_progress();
-			// break;
 		}
 	};
 
