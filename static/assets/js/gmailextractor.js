@@ -203,8 +203,8 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 	};
 
 	startTimer = function(minutes){
-		maxTime = 60000 * minutes;
-		perc = 0;
+		var maxTime = 60000 * (minutes);
+		var perc = 0;
 
 		var start = new Date();
 		var timeoutVal = Math.floor(maxTime/100);
@@ -216,7 +216,7 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 			timeRemaining = Math.round(minutes - (minutes * percentage));
 			try{
 				$('.circle').circleProgress('value', percentage);
-				$('.circle-text').text(timeRemaining + "");
+				$('.circle-text').text(parseInt((1-percentage).toFixed(2)*100, 10) + "");
 			}
 			catch(e){
 				//do nothing
@@ -244,6 +244,10 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		$download_link.empty();
 		$download_link.hide();
 	}
+
+	/**********************************************
+	Begin click functions
+	**********************************************/
 
 	//selects or deselects all images
 	//all images are added to an array or all are removed from an array
@@ -337,29 +341,6 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 
 	});
 
-	show_stop_alert = function(){
-		stop_msg = "Stopping the extraction process...";
-		$status.after("<div id='stopping' class='alert alert-danger'></div>");
-		$('#stopping').append(stop_msg);
-	};
-
-	hide_stop_alert = function(){
-		$('#stopping').remove();
-	};
-
-	hide_stop_btn = function(){
-		$stop.hide();
-	};
-
-	disable_stop_btn = function(){
-		$stop.addClass('disabled');
-		$stop.prop('disabled', true);
-	};
-
-	show_rescan_btn = function(){
-		$rescan.show();
-	};
-
 	//sends currently selected images to the backend for removal
 	$delete_confirmed.click(function () {
 
@@ -382,6 +363,74 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 	    $('input:checked').parents('div').eq(1).remove();
 	  });
 	});
+
+	$(document).on( "click", "input.img-checkbox", function() {
+
+		var img_info = [ $(this).attr("name"), $(this).attr("id") ];
+		var is_checked = $(this).prop('checked');
+		var num_checked = count_checked();
+		var select_bool = false;
+
+		changeBtnState(num_checked, "delete");
+		changeBtnState(num_checked, "save");
+
+		//checkbox is clicked, save filename in an array
+		if(is_checked){
+
+			selected_imgs.push(img_info);
+		}
+
+		//checkbox is unclicked, remove filename from the array
+		else {
+
+			var index = -1;
+			for (i=0; i<selected_imgs.length; i++){
+				if (selected_imgs[i][1].localeCompare(img_info[1]) === 0){
+					index = i
+				}
+			}
+			selected_imgs.splice(index, 1);
+		}
+	});
+
+	$(document).on( "click", "#remove-now", function() {
+		var params = {};
+
+		//send all selected images to backend
+		params = JSON.stringify({
+			"type": "remove-zip"
+		});
+		ws.send(params);
+
+		hide_download_link();
+	});
+
+	/**********************************************
+	End click functions
+	**********************************************/
+
+	show_stop_alert = function(){
+		stop_msg = "Stopping the extraction process...";
+		$status.after("<div id='stopping' class='alert alert-danger'></div>");
+		$('#stopping').append(stop_msg);
+	};
+
+	hide_stop_alert = function(){
+		$('#stopping').remove();
+	};
+
+	hide_stop_btn = function(){
+		$stop.hide();
+	};
+
+	disable_stop_btn = function(){
+		$stop.addClass('disabled');
+		$stop.prop('disabled', true);
+	};
+
+	show_rescan_btn = function(){
+		$rescan.show();
+	};
 
 	//helper function that counts the number of images that are selected
 	var count_checked = function() {
@@ -440,47 +489,6 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 
 		}
 	};
-
-	$(document).on( "click", "input.img-checkbox", function() {
-
-		var img_info = [ $(this).attr("name"), $(this).attr("id") ];
-		var is_checked = $(this).prop('checked');
-		var num_checked = count_checked();
-		var select_bool = false;
-
-		changeBtnState(num_checked, "delete");
-		changeBtnState(num_checked, "save");
-
-		//checkbox is clicked, save filename in an array
-		if(is_checked){
-
-			selected_imgs.push(img_info);
-		}
-
-		//checkbox is unclicked, remove filename from the array
-		else {
-
-			var index = -1;
-			for (i=0; i<selected_imgs.length; i++){
-				if (selected_imgs[i][1].localeCompare(img_info[1]) === 0){
-					index = i
-				}
-			}
-			selected_imgs.splice(index, 1);
-		}
-	});
-
-	$(document).on( "click", "#remove-now", function() {
-		var params = {};
-
-		//send all selected images to backend
-		params = JSON.stringify({
-			"type": "remove-zip"
-		});
-		ws.send(params);
-
-		hide_download_link();
-	});
 
 	count_images_message = function(){
 
@@ -561,7 +569,7 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 			case "removed-zip":
 				//handled by front end
 				//use this if you want to tell the user that the backend removed
-				//the zip files
+				//the zip files succesfully
 				break;
 
 			case "image-removed":

@@ -21,6 +21,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         self.write_message({'ok': True,
                             "type": "ws-open",
                             "msg": u"Waiting for the server..."})
+        self.timer = None
 
     def on_message(self, message):
         msg = tornado.escape.json_decode(message)
@@ -40,7 +41,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             return
 
     @tornado.web.asynchronous
-    # @profile
     def _handle_connect(self, msg, callback=None):
 
         access_token = self.get_secure_cookie('access_token')
@@ -188,8 +188,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                             " you want to remove from your Gmail account."})
 
                     loop = tornado.ioloop.IOLoop.instance()
-                    # remove link and zip file after n min
-                    loop.call_later(config.zip_removal_countdown, _remove_link)
+
+                    #now remove the link after n minutes + 1/3 n minutes
+                    self.timer = loop.call_later(config.zip_removal_countdown + int(config.zip_removal_countdown/10), _remove_link)
 
                 else:
                     self.write_message(self.write(
@@ -219,6 +220,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         pass
 
         email = self.get_secure_cookie('email')
+
+        # first clear any pending timeouts
+        if self.timer:
+            loop = tornado.ioloop.IOLoop.instance()
+            loop.remove_timeout(self.timer)
+            self.timer = None
+
+        # remove the zip file upon timeout or user request
         extractor.remove_zip(email, _remove_status)
 
     def _handle_sync(self, msg):

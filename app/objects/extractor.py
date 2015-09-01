@@ -471,7 +471,12 @@ class GmailImageExtractor(object):
             with zipfile.ZipFile(file_name, mode='w') as zf:
                 for message, some_images in messages_to_save.iteritems():
                     for an_image in some_images:
-                        zf.writestr(an_image.name(), an_image.body())
+                        # TODO - fix duplicate name issue when saving images to zip
+                        try:
+                            zf.writestr(an_image.name(), an_image.body())
+                        except:
+                            #failed most likely if duplicate name exists
+                            print "duplicate name", an_image.name()
 
             os.rename(file_name, file_path)
 
