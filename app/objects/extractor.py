@@ -11,6 +11,7 @@ from pygmail.account import Account
 import zipfile
 import time
 import tornado
+from app.objects.image import Image
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
@@ -24,11 +25,9 @@ class GmailImageExtractor(object):
     images the user selected in the web interface.
     """
 
-    def __init__(self, dest, email, access_token, limit=None, batch=10, replace=False):
+    def __init__(self, email, access_token, limit=None, batch=10, replace=False):
         """
         Args:
-            dest     -- the path on the file system where images should be
-                        extracted and written to.
             email -- the username of the Gmail account to connect to
             access_token -- the access_token of the Gmail account to connect to
 
@@ -46,32 +45,14 @@ class GmailImageExtractor(object):
             ValueError -- If the given dest path to write extracted images to
                           is not writeable.
         """
-        self.dest = dest
-
-        if not self.validate_path():
-            raise ValueError("{0} is not a writeable directory".format(dest))
-
         self.limit = limit
         self.batch = batch
         self.replace = replace
         self.email = email
         self.access_token = access_token
-
-    def validate_path(self):
-        """Checks to see the currently selected destiation path, for where
-        extracted images should be written, is a valid path that we can
-        read and write from.
-
-        Return:
-            A boolean description of whether the currently selected destination
-            is a valid path we can read from and write to.
-        """
-        if not os.path.isdir(self.dest):
-            return False
-        elif not os.access(self.dest, os.W_OK):
-            return False
-        else:
-            return True
+        self.stop = False
+        self.num_attachments = 0
+        self.attachment_count = 0
 
     def sign_request(self, raw):
         """Takes a predefined secret key and gmail's unique message id concatenated with
@@ -87,30 +68,6 @@ class GmailImageExtractor(object):
         hashed = hmac.new(key, raw, sha256)
 
         return hashed.digest().encode("base64").rstrip('\n')
-
-    def get_resize_img(self, img, img_type, basewidth=300, supported_formats=('jpeg', 'gif',
-                                                                              'png')):
-        """Constrains proportions of an image object. The max width and support image formats are
-        predefined by this function by default.
-
-        Returns:
-            A new image with contrained proportions specified by the max basewidth
-        """
-
-        img_type = img_type.split("/")[1]
-
-        if img_type in supported_formats:
-            img_buffer = StringIO.StringIO()
-            img = Image.open(StringIO.StringIO(img))
-            wpercent = (basewidth / float(img.size[0]))
-            hsize = int((float(img.size[1]) * float(wpercent)))
-            img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-            img_format = img_type
-            img.save(img_buffer, img_format)
-
-            return img_buffer.getvalue()
-        else:
-            return ""
 
     def connect(self):
         """Attempts to connect to Gmail using the username and access_token provided
@@ -146,29 +103,6 @@ class GmailImageExtractor(object):
         gm_ids = self.inbox.search("has:attachment", gm_ids=True, limit=limit)
         return len(gm_ids)
 
-    def num_messages_with_images(self):
-        """Checks to see how many Gmail messages have images in the
-        currently connected gmail account.
-
-        This should only be called after having succesfully connected to Gmail.
-
-        Return:
-            The number of messages in the Gmail account that have at least one
-            image (as advertised by Gmail).
-        """
-
-        limit = self.limit if self.limit > 0 else False
-
-        extensions = ["jpg", "png", "gif"]
-
-        gm_ids = []
-
-        for ext in extensions:
-            gm_ids.extend(self.inbox.search("has:attachment " + ext, gm_ids=True, limit=limit))
-
-        print "number of gm_ids: ", len(gm_ids)
-        return len(gm_ids)
-
     def image_generator(self, some_messages, callback=None):
         """Generator for images in a given mailbox"""
         offset = 0
@@ -177,29 +111,34 @@ class GmailImageExtractor(object):
 
         for a_message in some_messages:
             msg_id = a_message.gmail_id
-            for an_attachment in a_message.attachments():
-                if an_attachment.type in ATTACHMENT_MIMES:
-                    att_id, att_name, att_preview = self.image_details(an_attachment)
+            for att in a_message.attachments():
+                if att.type in ATTACHMENT_MIMES:
+                    att_type = att.type.split("/")[1]
+                    an_image = Image(a_message, att)
 
                     # map each image id with a corresponding message id for later parsing
-                    if att_id in self.mapping:
+                    # TODO - fix mapping
+                    if an_image.id in self.mapping:
                         self.mapping[msg_id].append(a_message)
                     else:
                         self.mapping[msg_id] = [a_message]
 
-                    yield msg_id, att_id, att_name, att_preview
+                    self.num_attachments = self.count_attachments(self.num_attachments)
+                    yield an_image
 
-    def message_batch(self, offset, per_page):
+    def count_attachments(self, num_att):
+        return num_att + 1
 
-        messages = self.inbox.search("has:attachment", full=True,
+    def message_batch(self, offset, per_page, search_string="has:attachment"):
+
+        messages = self.inbox.search(search_string, full=True,
                                      limit=per_page, offset=offset)
 
         offset += len(messages)
 
         return messages, offset
 
-    #extractor.extract(_status)
-    def async_extract(self, callback=None):
+    def async_extract(self, callback=None, num_messages=False):
         """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
         and sends them via websocket to the frontend.
 
@@ -214,18 +153,21 @@ class GmailImageExtractor(object):
             if callback:
                 callback(*args)
 
-        num_messages_with_attachments = self.num_messages_with_attachments()
-        attachment_count = 0
+        if num_messages == False:
+            num_messages = self.num_messages_with_attachments()
+
         offset = 0
         per_page = min(self.batch, self.limit) if self.limit else self.batch
+        self.extracted_images = []
         self.mapping = {}
+        self.num_messages_count = 0
         hit_limit = False
 
         #callback to begin extraction process asyncronously
         loop = tornado.ioloop.IOLoop.current()
-        loop.add_callback(callback=lambda: self.do_async_extract(num_messages_with_attachments, offset, per_page, callback));
+        loop.add_callback(callback=lambda: self.do_async_extract(offset, per_page, callback, num_messages));
 
-    def do_async_extract(self, num_messages_with_attachments, offset, per_page, callback=None):
+    def do_async_extract(self, offset, per_page, callback=None, num_messages=False):
         """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
         and sends them via websocket to the frontend.
 
@@ -248,10 +190,16 @@ class GmailImageExtractor(object):
             if callback:
                 callback(*args)
 
+        # check if user hit stop
+        if self.stop == True:
+            _cb('download-complete', num_messages)
+            return
+
         # get messages for extraction, keep track of the offset for future batches
         messages, offset = self.message_batch(offset, per_page)
 
         if len(messages) == 0:
+            _cb('download-complete', num_messages)
             return
 
         _cb('message', offset)
@@ -261,147 +209,47 @@ class GmailImageExtractor(object):
 
         loop = tornado.ioloop.IOLoop.current()
 
-        # extract images one by one and send to frontend
-        self.extract_images(images, callback)
+        # extract images from messages using image_generator
+        loop.add_callback(callback=lambda: self.extract_images(images, callback))
+
+        # send extracted images to front-end for display
+        loop.add_callback(callback=lambda: self.output_images(self.extracted_images, callback))
 
         # get next batch of messages
-        loop.add_callback(callback=lambda: self.do_async_extract(num_messages_with_attachments, offset, per_page, callback))
+        loop.add_callback(callback=lambda: self.do_async_extract(offset, per_page, callback, num_messages))
 
-        # offset
-        if offset >= num_messages_with_attachments:
-            _cb('download-complete', num_messages_with_attachments)
 
-    def extract_images(self, images, callback=None):
+    def output_images(self, images, callback=None):
+
         def _cb(*args):
             if callback:
                 callback(*args)
         try:
-            msg_id, att_id, att_name, att_preview = images.next()
+            image = images.pop(1) # remove the image as it's displayed to prevent duplicates
+            _cb('image', image.msg_id, image.id, image.name, image.encode_preview(), image.type, image.date)
+            loop = tornado.ioloop.IOLoop.current()
+            loop.add_callback(callback=lambda: self.output_images(images, callback))
+        except:
+            #images list is now empty, no more images to output
+            pass
 
-            #send image to the frontend
-            _cb("image", msg_id, att_id, att_name, att_preview)
+    def extract_images(self, images, callback=None):
 
+        def _cb(*args):
+            if callback:
+                callback(*args)
+        try:
             #recursively call fn to get remaining images if they exists
-            self.extract_images(images, callback)
+            image = images.next()
+            #send image to the frontend
+            loop = tornado.ioloop.IOLoop.current()
+            self.extracted_images.append(image)
+            loop.add_callback(callback=lambda: self.extract_images(images, callback))
+            self.attachment_count += 1
+            _cb('attachment-count', self.attachment_count)
 
         except StopIteration:
             pass
-
-    def image_details(self, image):
-
-        image_preview = None
-        try:
-            image_preview = self.get_resize_img(image.body(), image.type, 500)
-        except:
-            image_preview = image.body()
-
-        image_preview = base64.b64encode(image_preview)
-
-        return hex(id(image)), image.name(), image_preview
-
-    def extract(self, callback=None):
-        """Extracts images from Gmail messages, encodes them into strings,
-        and sends them via websocket to the frontend.
-
-        Keyword Args:
-            callback -- An optional function that will be called with updates
-            about the image extraction process. If provided,
-            will be called with either the following arguments
-
-                        ('image', message id, image id, hmac key)
-                        when sending an image via websocket, where
-                        `message_id` is the unqiue id of the message,
-                        image_id is the unque id of a given image, and
-                        hmac key concatenates the message and image id.
-
-                        ('message', first)
-                        when fetching messages from Gmail, where `first` is the
-                        index of the current message being downloaded.
-
-        Returns:
-            The number of attachments found
-        """
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-
-        attachment_count = 0
-        num_messages = 0
-        offset = 0
-        per_page = min(self.batch, self.limit) if self.limit else self.batch
-        # Keep track of which attachments belong to which messages.  Do this
-        # by keeping track of all attachments downloaded to the filesystem
-        # (used as the dict key) and pairing it with two values, the gmail
-        # message id and the hash of the attachment (so that we can uniquely
-        # identify the attachment again)
-        self.mapping = {}
-        hit_limit = False
-        while True and not hit_limit:
-            _cb('message', offset + 1)
-            messages = self.inbox.search("has:attachment", full=True,
-                                         limit=per_page, offset=offset)
-            if len(messages) == 0:
-                break
-
-            # STEP 1 - Scan entire inbox for images
-            for msg in messages:
-                for att in msg.attachments():
-                    if att.type in ATTACHMENT_MIMES:
-
-                        img_name = att.name()
-
-                        # STEP 2 - Note: unique gmail_id for each message
-                        msg_id = msg.gmail_id
-
-                        # unique id for each attachment
-                        # uses the attachment's hex memory value
-                        img_identifier = hex(id(att))
-
-                        # create map to use later for linking
-                        # each message with each attachment
-                        if img_identifier in self.mapping:
-                            self.mapping[msg_id].append(msg)
-                        else:
-                            self.mapping[msg_id] = [msg]
-
-                        # STEP 3 - Scale down images and encode into base64
-
-                        # Scale down image before encoding
-                        try:
-                            img = self.get_resize_img(att.body(), att.type, 500)
-                        except:
-                            img = att.body()
-
-                        if len(img) == 0:  # no img was resized
-                            continue
-
-                        # Encode image into base64 format for sending via websocket
-                        encoded_img = base64.b64encode(img)
-
-                        # STEP 4 - Build hmac with gmail_id and img_identifier
-                        # hmac_req = self.sign_request(msg_id + " " + img_identifier)
-
-                        # STEP 5 - Send message via websockets containing:
-                        #          --msg_id: unique id for gmail message
-                        #          --image_identifier: hash of image body
-                        #          --encoded_img: image in string format encoded
-                        #                         in base 64 format
-                        #          --hmac: autheticated hash
-                        # _cb('image', msg_id, img_identifier, encoded_img, hmac_req)
-
-                        _cb('image', msg_id, img_identifier, encoded_img, img_name)
-
-                        attachment_count += 1
-                        num_messages += 1
-
-                        if self.limit > 0 and num_messages >= self.limit:
-                            hit_limit = True
-                            break
-
-            offset += per_page
-
-        return attachment_count
 
     def order_by_g_id(self, selected_images):
         ordered_by_g_id = dict()
@@ -604,7 +452,7 @@ class GmailImageExtractor(object):
 
         return abs_path
 
-    def save_zip(self, messages_to_save, email, callback=None):
+    def do_save(self, messages_to_save, email, callback=None):
 
         def _cb(*args):
             if callback:
@@ -613,9 +461,6 @@ class GmailImageExtractor(object):
         file_name = email + ".zip"
 
         try:
-            # curr_path = os.path.dirname(os.path.abspath(__file__))
-            # app_path = os.path.dirname(curr_path)
-            # abs_path = "~/gmail-images/" + email
             abs_path = self.get_abs_path()
 
             if not os.path.exists(abs_path):
@@ -642,16 +487,6 @@ class GmailImageExtractor(object):
 
         return True
 
-    def countdown(self, seconds):
-        while seconds >= 0:
-            seconds -= 1
-            time.sleep(1)
-        self.remove_zip("gmail_images.zip")
-
-    def countdown_remove_zip(self, seconds, file_name):
-        self.countdown(seconds)
-        self.remove_zip(file_name)
-
     def remove_zip(self, file_no_ext=None, callback=None):
 
         if not file_no_ext:
@@ -667,7 +502,6 @@ class GmailImageExtractor(object):
 
             try:
                 # remove folder and contents
-                # shutil.rmtree(abs_path)
                 os.remove(file_w_ext)
                 if callback:
                     try:
@@ -677,185 +511,21 @@ class GmailImageExtractor(object):
             finally:
                 return
 
-    def get_attachment_count(self, some_messages):
-
-        attachment_count = 0
-
-        for a_message, some_attachments in some_messages.iteritems():
-            for an_attachment in some_attachments:
-                attachment_count += 1
-
-        return attachment_count
-
-    def do_save(self, messages_to_save, callback=None, max_packet_size=10):
-        """
-        Sends images in packets of 10 to the front-end
-        """
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-
-        encoded_images = []
-        image_names = []
-        packet_size = 0
-        images_packaged = 0
-        attachment_count = self.get_attachment_count(messages_to_save)
-
-        _cb("image-packet", [], [], 0, 0, attachment_count)
-
-        # loop through each message and extract attachments
-        for message, some_images in messages_to_save.iteritems():
-            # loop through each image
-            for an_image in some_images:
-                # encode the image
-                encoded_image = base64.b64encode(an_image.body())
-                # add encoded image to array of encoded images
-                encoded_images.append(encoded_image)
-                # save image name
-                image_names.append(an_image.name())
-                packet_size += 1
-                images_packaged += 1
-
-                # packet of images to front-end
-                if packet_size == max_packet_size:
-                    _cb("image-packet", encoded_images, image_names, packet_size, images_packaged,
-                        attachment_count)
-                    encoded_images = []
-                    image_names = []
-                    packet_size = 0
-
-                # print "packaged: %d, total: %d" % (images_packaged, attachment_count)
-
-        # send remaining images
-        if packet_size > 0:
-            _cb("image-packet", encoded_images, image_names,
-                packet_size, images_packaged, attachment_count)
-
-        return
-
     def save(self, msg, email, callback=None):
         """
         Arranges msg by gmailid and attachment
         Wrapper for do_save function
         """
-
         def _cb(*args):
             if callback:
-                return callback(*args)
-
+                callback(*args)
         try:
             messages = self.parse_selected_images(msg)
         except:
             print("Couldn't parse selected images.")
-
         try:
-            self.save_zip(messages, email, callback)
-            # self.do_save(messages, callback)
-            # passed, zip_file = self.zip_images(messages)
-
-            # if(passed):
-            #     self.write_zip(zip_file, callback)
-            # else:
-            #     print("Failed to write zip to disk")
-            # _cb("save-passed", packaged_images, image_names)
-
+            self.do_save(messages, email, callback)
         except:
             _cb("save_failed", [])
-
         finally:
             return
-
-    def check_deletions(self):
-        """Checks the filesystem to see which image attachments, downloaded
-        in the self.extract() step, have been removed since extraction, and
-        thus should be removed from Gmail.
-
-        Returns:
-            The number of attachments that have been deleted from the
-            filesystem.
-            """
-
-        # Now we can find the attachments the user wants removed from their
-        # gmail account by finding every file in the mapping that is not
-        # still on the file system
-        #
-        # Here we want to group attachments by gmail_id, so that we only act on
-        # a single email message once, instead of pulling it down multiple times
-        # (which would change its gmail_id and ruin all things)
-
-        self.to_delete = {}
-        self.to_delete_subjects = {}
-        self.num_deletions = 0
-        for a_name, (gmail_id, a_hash, msg_subject) in self.mapping.items():
-            if not os.path.isfile(os.path.join(self.dest, a_name)):
-                if gmail_id not in self.to_delete:
-                    self.to_delete[gmail_id] = []
-                    self.to_delete_subjects[gmail_id] = msg_subject
-                    self.to_delete[gmail_id].append(a_hash)
-                    self.num_deletions += 1
-                    return self.num_deletions
-
-    def sync_old(self, label='"Images redacted"', callback=None):
-        """Finds image attachments that were downloaded during the
-        self.extract() step, and deletes any attachments that were deleted
-        from disk from their corresponding images in Gmail.
-
-        Keyword Args:
-            label    -- Gmail label to use either as a temporary work label
-            (if instatiated with replace=True) or where the altered
-            images will be stored (if instatiated with
-            replace=False). Note that this label should be in valid
-            ATOM string format.
-            callback -- An optional funciton that will be called with updates
-            about the message update process. If provided,
-            will be called with the following sets of arguments:
-
-                        ('fetch', subject, num_attach)
-                        Called before fetching a message from gmail. `subject`
-                        is the subject of the email message to download, and
-                        `num_attach` is the number of attachments to be removed
-                        from that message.
-
-                        ('write', subject)
-                        Called before writing the altered version of the message
-                        back to Gmail.
-
-        Returns:
-            Two values, first being the number of attachments that were removed
-            from messages in Gmail, and second is the number of messages that
-            were altered.
-            """
-
-        # try:
-        # num_to_delete = self.num_deletions
-        # except AttributeError:
-        # num_to_delete = self.check_deletions()
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-
-        num_msg_changed = 0
-        num_attch_removed = 0
-        for gmail_id, attch_to_remove in self.to_delete.items():
-            msg_sbj = self.to_delete_subjects[gmail_id]
-
-            _cb('fetch', msg_sbj, len(attch_to_remove))
-            msg_to_change = self.inbox.fetch_gm_id(gmail_id, full=True)
-            attach_hashes = {a.sha1(): a for a in msg_to_change.attachments()}
-            removed_attachments = 0
-            for attachment_hash in attch_to_remove:
-                attach_to_delete = attach_hashes[attachment_hash]
-                if attach_to_delete.remove():
-                    removed_attachments += 1
-                    num_attch_removed += 1
-
-            if removed_attachments:
-                num_msg_changed += 1
-                _cb('write', msg_sbj)
-                if self.replace:
-                    msg_to_change.save(self.trash_folder.name, safe_label=label)
-                else:
-                    msg_to_change.save_copy(label)
-                    return num_attch_removed, num_msg_changed

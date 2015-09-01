@@ -1,53 +1,39 @@
 jQuery(function ($) {
 
-	// TODO - Remove image thumbnails from frontend before sending to backend. Server callbacks are too slow..
+	//TODO - force delete to delete images from the frond end and
+	// queue a removal in the backend
 
 var prog_hidden = true,
 loc = window.location,
 $prog_container = $(".progress"),
 $prog = $(".progress-bar"),
 $results_container = $(".results"),
-	// 	$email = $("#email"),
-	// 	$pass = $("#password"),
-	// 	$submit = $("#submit"),
-	// 	$auth_form = $("#auth-form"),
-	// 	$auth_fields = $auth_form.find(":input"),
 $status = $(".status"),
+$status = $(".status"),
+$alert = $(".alert"),
 $download_link = $(".download-link"),
 timer = null,
-	// 	$sync_form = $("#sync-form"),
-	// 	$confim_form = $("#confirm-form"),
-	// 	$no_confirm_bttn = $confim_form.find("[type=cancel]"),
-  // $delete = $("#delete"),
+$stop = $("#stop"),
+$rescan = $("#rescan"),
 $delete_confirmed = $("#delete-confirmed"),
 $select_all = $("#select-all"),
 select_bool = false,
 $images_menu = $("#images-menu"),
 $save = $("#save"),
-	// 	$input = $("#input"),
-	// 	rewrite_index = null,
-	// 	rewrite_total = null,
 feedback = null,
-	// 	num_messages = null,
-	// 	update_progress = null,
-	// 	hide_progress = null,
-	// 	update_results = null,
-	// 	img_id = null,
-	// 	hide_results = null,
 selected_imgs = [],
-	// 	encoded_images = [],
-	// 	image_names = [],
-	// 	pkg_image_count = 0,
-	ws = new WebSocket("ws://" + loc.host + "/ws");
-	//
+download_complete = false,
+num_attachments_found = 0,
+stopped = false,
+ws = new WebSocket("ws://" + loc.host + "/ws");
 
-		//window.onload = function(){
-		connect = function(){
+	//window.onload = function(){
+	connect = function(){
 
 			var params = JSON.stringify({
 				"type": "connect",
 				"limit": 0,
-				"simultaneous": 1,
+				"simultaneous": 10,
 				"rewrite": 1
 			});
 
@@ -55,38 +41,85 @@ selected_imgs = [],
 
 	};
 
+	//listen for images as they populate, clear this interval once
+	//all images have been displayed
+	is_download_complete_interval = window.setInterval(function(){
+		count_attachments = 0;
+
+		if (download_complete && num_attachments_found > 0){
+			//enable select all button
+			show_select_all();
+		}
+
+		if (download_complete){
+			count_attachments = show_checkboxes();
+		}
+
+		if (count_attachments > 0 && count_attachments == num_attachments_found){
+
+			window.clearInterval(is_download_complete_interval);
+		}
+	}, 100);
+
+	show_select_all = function(){
+		$select_all.removeClass("disabled");
+		$select_all.prop('disabled', false);
+	};
+
+	show_checkboxes = function(){
+		count_attachments = 0;
+		$('.img-checkbox').each(function(){
+			$(this).show();
+			count_attachments += 1;
+		});
+		return count_attachments;
+	};
+
+	count_images = function(){
+		return $('.thumbnail').length;
+	}
+
 	window.onload = function(){
 		$('#save').prop('disabled', true);
 		$('#delete').prop('disabled', true);
+		$('#select-all').prop('disabled', true);
 	};
-	//
-	// hide_results = function () {
-	//
-	// 	$results_container.fadeOut();
-	// 	results_hidden = true;
-	// };
-	//
+
 	//displays images in the browser as they are found in the users mailbox
-	update_results = function (msg_id, img_id, enc_img, img_name) {
+	update_results = function (img) {
 
 		//decode image from base64 to small image to display in img tag
-		var img = new Image();
-		img.src = 'data:image/jpeg;base64,' + enc_img;
+		//var thumb_img = new Image();
+		img.src = 'data:image/jpeg;base64,' + img.preview;
 
 		//create thumbnail for image to be displayed in
-		$results_container.append(thumbnail(msg_id, img_id, img, img_name));
+		$results_container.append(thumbnail(img));
 	};
 
-	thumbnail = function(msg_id, img_id, img, img_name) {
+	thumbnail = function(img) {
 		return ('<div class="col-xs-6 col-md-3">' +
 								  '<div class="thumbnail">' +
-								  '<input class="img-checkbox" id="' + img_id +
-								  '" name="' + msg_id + '" type="checkbox" "">' +
+								  '<input class="img-checkbox" id="' + img.id +
+								  '" name="' + img.msg_id + '" type="checkbox" style="display:none" "">' +
 								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' +
 								  '<img src="' + img.src + '">' +
 								  '</a>' +
 								  '</div>' +
 								  '</div>');
+	};
+
+	previewImage = function (image_body) {
+
+		$("#imagePreview").attr("src", image_body);
+		$("#image-modal").modal('show', function(){
+
+			$(this).find('.modal-body').css({
+
+				width:'auto', //probably not needed
+				height:'auto', //probably not needed
+				'max-height':'100%'
+			});
+		});
 	};
 
 	//hides the progress bar
@@ -121,8 +154,7 @@ selected_imgs = [],
 		return;
 	};
 
-	//manages a dialoge at the top of the package
-	//used to display messages to the user
+	//used to display status messages to the user
 	feedback = function (msg, additional_message) {
 
 		$status.removeClass("alert-info").removeClass("alert-warning");
@@ -171,12 +203,13 @@ selected_imgs = [],
 	};
 
 	startTimer = function(minutes){
-		maxTime = 60000 * minutes
+		maxTime = 60000 * minutes;
+		perc = 0;
 
 		var start = new Date();
 		var timeoutVal = Math.floor(maxTime/100);
 
-		animateUpdate(maxTime);
+		animateUpdate();
 
 		function updateProgress(percentage) {
 			percentage = percentage/100.0;
@@ -199,24 +232,18 @@ selected_imgs = [],
 					 clearTimeout(timer);
 		       timer = setTimeout(animateUpdate, timeoutVal);
 		      }
+					else {
+						//end the timer and remove the save link
+						hide_download_link();
+					}
 		}
 	};
 
-
-
-	previewImage = function (image_body) {
-
-		$("#imagePreview").attr("src", image_body);
-		$("#image-modal").modal('show', function(){
-
-			$(this).find('.modal-body').css({
-
-				width:'auto', //probably not needed
-				height:'auto', //probably not needed
-				'max-height':'100%'
-			});
-		});
-	};
+	hide_download_link = function(){
+		clearTimeout(timer);
+		$download_link.empty();
+		$download_link.hide();
+	}
 
 	//selects or deselects all images
 	//all images are added to an array or all are removed from an array
@@ -283,8 +310,57 @@ selected_imgs = [],
 		ws.send(params);
 	});
 
+	$stop.click(function() {
+
+		stopped = true;
+		download_complete = true;
+		var add_msg = count_images_message();
+
+		hide_stop_btn();
+		show_rescan_btn();
+		hide_progress();
+		num_attachments_found = count_images();
+
+		var msg = {
+			"ok": true,
+			"msg": "Extraction process stopped.",
+			"type": "none",
+		}
+
+		feedback(msg, add_msg);
+
+		var params = JSON.stringify({
+			"type" : "stop",
+		});
+
+		ws.send(params);
+
+	});
+
+	show_stop_alert = function(){
+		stop_msg = "Stopping the extraction process...";
+		$status.after("<div id='stopping' class='alert alert-danger'></div>");
+		$('#stopping').append(stop_msg);
+	};
+
+	hide_stop_alert = function(){
+		$('#stopping').remove();
+	};
+
+	hide_stop_btn = function(){
+		$stop.hide();
+	};
+
+	disable_stop_btn = function(){
+		$stop.addClass('disabled');
+		$stop.prop('disabled', true);
+	};
+
+	show_rescan_btn = function(){
+		$rescan.show();
+	};
+
 	//sends currently selected images to the backend for removal
-	//closes delete modal
 	$delete_confirmed.click(function () {
 
 		var params = JSON.stringify({
@@ -294,7 +370,17 @@ selected_imgs = [],
 
 		ws.send(params);
 
+		//closes delete modal
 		$("#delete-modal").modal('hide');
+
+		//animate and remove thumnail from front-end
+	  $('input:checked').closest('.thumbnail').animate({
+	    opacity: 0.25,
+	    left: "+=50",
+	    height: "toggle"
+	  	}, 5000, function() {
+	    $('input:checked').parents('div').eq(1).remove();
+	  });
 	});
 
 	//helper function that counts the number of images that are selected
@@ -393,9 +479,29 @@ selected_imgs = [],
 		});
 		ws.send(params);
 
-		//stop timer
-		clearTimeout(timer);
+		hide_download_link();
 	});
+
+	count_images_message = function(){
+
+		msg = "";
+		image_count = count_images();
+		msg_courtesy = "Please check all attachments that" +
+													" you want to remove from your Gmail account."
+
+
+		if (image_count == 0){
+			msg = "Found 0 images."
+		}
+		else if (image_count == 1){
+			msg = "Successfully found 1 image. " + msg_courtesy;
+		}
+		else {
+			msg = "Successfully found " + image_count + " images. " + msg_courtesy;
+		}
+
+		return msg;
+	};
 
 	ws.onmessage = function (evt) {
 		var msg = JSON.parse(evt.data);
@@ -411,41 +517,56 @@ selected_imgs = [],
 				feedback(msg);
 				if(msg.ok)
 					$images_menu.fadeIn();
-			break;
+				break;
 
 			case "count":
 				feedback(msg);
-			num_messages = msg.num;
-			break;
+				num_messages = msg.num;
+				break;
 
 			case "image":
-				update_results(msg.msg_id, msg.img_id, msg.enc_img);
+				if (!stopped){
+					var img = msg;
+					update_results(img);
+				}
 			break;
 
 			case "downloading":
-				feedback(msg);
-			update_progress(msg.num, num_messages);
+				if(!stopped){
+					feedback(msg);
+					update_progress(msg.num, num_messages);
+				}
 			break;
 
 			case "download-complete":
-				feedback(msg, "Please check all attachments that you want to remove from your Gmail account.");
-			hide_progress();
-			//$sync_form.fadeIn();
-			break;
+				if (!stopped){
+					feedback(msg, "Please check all attachments that you want to remove from your Gmail account.");
+					num_attachments_found = msg.num;
+					download_complete = true;
+					hide_stop_btn();
+					show_rescan_btn();
+					hide_progress();
+				}
+				break;
+
+			case "stopped":
+				//handled by $stop.click
+				break;
 
 			case "saved-zip":
 				feedback(msg);
-				startTimer(parseInt(msg.time)); //30 minutes
+				startTimer(parseInt(msg.time));
 				break;
 
 			case "removed-zip":
-				$download_link.empty();
-				$download_link.hide();
+				//handled by front end
+				//use this if you want to tell the user that the backend removed
+				//the zip files
 				break;
 
 			case "image-removed":
 				remove_image(msg.gmail_id, msg.image_id)
-			break;
+				break;
 		}
 	};
 

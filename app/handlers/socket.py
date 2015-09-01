@@ -3,7 +3,6 @@ import tornado
 from app.objects.extractor import GmailImageExtractor
 import config
 
-attr_dir = os.path.dirname(os.path.abspath(__file__))
 state = {}
 
 
@@ -17,6 +16,8 @@ def plural(msg, num):
 class SocketHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
+        self.stop = False
+        self.attachment_count = 0
         self.write_message({'ok': True,
                             "type": "ws-open",
                             "msg": u"Waiting for the server..."})
@@ -33,18 +34,21 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             self._handle_save(msg)
         elif msg['type'] == 'remove-zip':
             self._handle_remove_zip(msg)
+        elif msg['type'] == 'stop':
+            self._handle_stop(msg)
         else:
             return
 
     @tornado.web.asynchronous
-    @profile
+    # @profile
     def _handle_connect(self, msg, callback=None):
 
         access_token = self.get_secure_cookie('access_token')
         email = self.get_secure_cookie('email')
         num_messages = 0
+        self.extraction_complete = False
 
-        state['extractor'] = GmailImageExtractor(attr_dir, email,
+        state['extractor'] = GmailImageExtractor(email,
                                                  access_token, limit=int(msg['limit']),
                                                  batch=int(msg['simultaneous']),
                                                  replace=bool(msg['rewrite']))
@@ -65,34 +69,42 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                 "num": num_messages})
 
             def _status(*args):
+                if self.stop:
+                    return
+                else:
+                    if args[0] == 'image':
+                        self.write_message({"ok": True,
+                                            "type": "image",
+                                            "msg_id": args[1],
+                                            "id": args[2],
+                                            "name": args[3],
+                                            "preview": args[4],
+                                            "ext": args[5],
+                                            "date": args[6]})
 
-                if args[0] == 'image':
-                    self.write_message({"ok": True,
-                                        "type": "image",
-                                        "msg_id": args[1],
-                                        "img_id": args[2],
-                                        "img_name": args[3],
-                                        "enc_img": args[4]})
+                    if args[0] == 'message':
+                        status_msg = u"Scanning messages {1} of {2}".format(msg['simultaneous'],
+                                                                           args[1], num_messages)
+                        self.write_message({"ok": True,
+                                            "type": "downloading",
+                                            "msg": status_msg,
+                                            "num": args[1]})
 
-                if args[0] == 'message':
-                    status_msg = u"Scanning messages {1} of {2}".format(msg['simultaneous'],
-                                                                       args[1], num_messages)
-                    self.write_message({"ok": True,
-                                        "type": "downloading",
-                                        "msg": status_msg,
-                                        "num": args[1]})
+                    if args[0] == 'download-complete':
+                        self.extraction_complete = True
 
-                if args[0] == 'download-complete':
-                    attachment_count = args[1]
-                    self.write_message({"ok": True,
-                        "type": "download-complete",
-                        "msg": "Succesfully found {0} {1}"
-                        "".format(attachment_count, plural(u"image", attachment_count)),
-                        "num": attachment_count})
+                    if args[0] == 'attachment-count' and self.extraction_complete:
+                        attachment_count = args[1] - 1
+                        self.attachment_count = attachment_count
+                        self.write_message({"ok": True,
+                            "type": "download-complete",
+                            "msg": "Succesfully found {0} {1}"
+                            "".format(attachment_count, plural(u"image", attachment_count)),
+                            "num": attachment_count})
 
             extractor = state['extractor']
             loop = tornado.ioloop.IOLoop.current()
-            loop.add_callback(callback=lambda: extractor.async_extract(_status))
+            loop.add_callback(callback=lambda: extractor.async_extract(_status, num_messages=num_messages))
 
     def _handle_delete(self, msg):
         extractor = state['extractor']
@@ -100,15 +112,16 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         def _delete_status(*args):
             update_type = args[0]
 
-            if update_type == "image-removed":
-                self.write_message({"ok": True,
-                                    "type": "image-removed",
-                                    "msg": u"Removed {0} out of {1} {2}."
-                                    "".format(args[1],
-                                              args[2],
-                                              plural(u"image", args[2])),
-                                    "gmail_id": args[3],
-                                    "image_id": args[4]})
+            # don't write this message, the front end removes images
+            # if update_type == "image-removed" and False:
+            #     self.write_message({"ok": True,
+            #                         "type": "image-removed",
+            #                         "msg": u"Removed {0} out of {1} {2}."
+            #                         "".format(args[1],
+            #                                   args[2],
+            #                                   plural(u"image", args[2])),
+            #                         "gmail_id": args[3],
+            #                         "image_id": args[4]})
 
         try:
             num_messages_changed, num_images_deleted = extractor.delete(msg, callback=_delete_status)
@@ -129,23 +142,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         def _save_status(*args):
             update_type = args[0]
-            if update_type == "image-packet":
-                self.write_message({"ok": True,
-                                    "msg": u"{0} of {1} total {2} extracted from gmail..."
-                                    "".format(args[4], args[5], plural(u"image", args[5])),
-                                    "type": "image-packet",
-                                    "images": args[1],
-                                    "image_names": args[2],
-                                    "packet_size": args[3],
-                                    "packet_count": args[4],
-                                    "total_images": args[5]})
-
-            if update_type == "packet-progress":
-                self.write_message({"ok": True,
-                                    "msg": "Packaging images...",
-                                    "type": "packet-progress",
-                                    "num": args[1],
-                                    "messages": args[2]})
 
             if update_type == "save-passed":
                 self.write_message({"ok": True,
@@ -167,7 +163,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "<h3>Click Here to Download Your Gmail Images</h3>"
                                         "</a></br></br>"
                                         "<span>"
-                                        "Minutes left before your link dissapears or click the "
+                                        "Time left before your link dissapears or click the "
                                         "timer now to delete the link..."
                                         "</span></br>"
                                         "<a id=""remove-now"" href=""#"">"
@@ -263,14 +259,22 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                       num_msg_changed,
                                       plural(u"message", num_msg_changed))})
 
+    def _handle_stop(self, msg):
+        extractor = state['extractor']
+        extractor.stop = True
+        self.stop = True
+        attachment_count = self.attachment_count
+
+        # allow front end to display status message to user
+        # status messages are delayed to callbacks
+        # this gives the apperance that the stop is immediate to the user
+
     def on_close(self):
         # remove the user's zip file
         try:
             email = self.get_secure_cookie('email')
-        except:
-            pass
-        try:
             state['extractor'].remove_zip(email)
         except:
             pass
+
         state['extractor'] = None
