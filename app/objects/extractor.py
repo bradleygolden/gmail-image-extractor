@@ -481,17 +481,23 @@ class GmailImageExtractor(object):
 
                         # loop until duplicate is not found in the dictionary
                         count = 1
+                        print att_name, att_type
                         while att_name in name_dict:
-                            #remove previous tag
-                            att_name = re.split("\([0-9]*\)", att_name)[0]
-                            att_name = att_name + "(" + str(count) + ")"
+
+                            # remove previous tag ie name{{1}}
+                            # if a file name looks like beg{{1}}end{{1}} then
+                            # the resulting name will be begend{{1}}
+                            # This is a small quirk, fix it if you'd like!
+                            att_name = re.split("\{\{[0-9]*\}\}", att_name)[0]
+
+                            att_name = att_name + "{{" + str(count) + "}}"
                             count += 1
 
 
-                        #add name to the dictionary to track for later
+                        # add name to the dictionary to track for later
                         name_dict[att_name] = [att_name]
 
-                        #combine attachment name and attachment type
+                        # combine attachment name and attachment type
                         full_file_name = att_name + att_type
 
                         zf.writestr(full_file_name, an_image.body())
