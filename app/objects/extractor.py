@@ -12,6 +12,7 @@ import zipfile
 import time
 import tornado
 from app.objects.image import Image
+import re
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
@@ -459,6 +460,7 @@ class GmailImageExtractor(object):
                 callback(*args)
 
         file_name = email + ".zip"
+        name_dict = dict()
 
         try:
             abs_path = self.get_abs_path()
@@ -471,26 +473,41 @@ class GmailImageExtractor(object):
             with zipfile.ZipFile(file_name, mode='w') as zf:
                 for message, some_images in messages_to_save.iteritems():
                     for an_image in some_images:
-                        # TODO - fix duplicate name issue when saving images to zip
+
+                        # now we have to handle any duplicate file names
+                        # before writing them to the zip file
+                        att_type = an_image.name()[-4:]
+                        att_name = an_image.name()[:-4]
+
+                        # loop until duplicate is not found in the dictionary
+                        count = 1
+                        while att_name in name_dict:
+                            #remove previous tag
+                            att_name = re.split("\([0-9]*\)", att_name)[0]
+                            att_name = att_name + "(" + str(count) + ")"
+                            count += 1
+
+
+                        #add name to the dictionary to track for later
+                        name_dict[att_name] = [att_name]
+
+                        #combine attachment name and attachment type
+                        full_file_name = att_name + att_type
+
                         try:
-                            zf.writestr(an_image.name(), an_image.body())
-                        except:
+                            zf.writestr(full_file_name, an_image.body())
+                        except UserWarning:
                             #failed most likely if duplicate name exists
-                            print "duplicate name", an_image.name()
+                            # remove extension, ie. image.jpg -> image & .jpg
+                            att_type = an_image.name()[-4:]
+                            att_name = an_image.name()[:-4]
 
             os.rename(file_name, file_path)
 
             _cb('saved-zip', True, file_name)
 
-        except:
-
-            return False
-
         finally:
-
             zf.close()
-
-        return True
 
     def remove_zip(self, file_no_ext=None, callback=None):
 
@@ -526,9 +543,6 @@ class GmailImageExtractor(object):
                 callback(*args)
         try:
             messages = self.parse_selected_images(msg)
-        except:
-            print("Couldn't parse selected images.")
-        try:
             self.do_save(messages, email, callback)
         except:
             _cb("save_failed", [])
