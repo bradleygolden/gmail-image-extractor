@@ -494,13 +494,7 @@ class GmailImageExtractor(object):
                         #combine attachment name and attachment type
                         full_file_name = att_name + att_type
 
-                        try:
-                            zf.writestr(full_file_name, an_image.body())
-                        except UserWarning:
-                            #failed most likely if duplicate name exists
-                            # remove extension, ie. image.jpg -> image & .jpg
-                            att_type = an_image.name()[-4:]
-                            att_name = an_image.name()[:-4]
+                        zf.writestr(full_file_name, an_image.body())
 
             os.rename(file_name, file_path)
 
