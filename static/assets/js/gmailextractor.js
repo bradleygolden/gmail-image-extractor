@@ -93,11 +93,11 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		img.src = 'data:image/jpeg;base64,' + img.preview;
 
 		//create thumbnail for image to be displayed in
-		$results_container.append(thumbnail(img));
+		$results_container.append($thumbnail(img));
 	};
 
-	thumbnail = function(img) {
-		return ('<div class="col-xs-6 col-md-3">' +
+	$thumbnail = function(img) {
+		return ('<div class="col-xs-6 col-md-3 grid-item" style="position:relative">' +
 								  '<div class="thumbnail">' +
 								  '<input class="img-checkbox" id="' + img.id +
 								  '" name="' + img.msg_id + '" type="checkbox" style="display:none" "">' +
@@ -215,8 +215,9 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 			percentage = percentage/100.0;
 			timeRemaining = Math.round(minutes - (minutes * percentage));
 			try{
+				//percentage_str = parseInt((1-percentage).toFixed(2)*100, 10) + "";
 				$('.circle').circleProgress('value', percentage);
-				$('.circle-text').text(parseInt((1-percentage).toFixed(2)*100, 10) + "");
+				$('.circle-text').text(timeRemaining + "min");
 			}
 			catch(e){
 				//do nothing
@@ -275,7 +276,8 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 			select_bool = true;
 
 			//change name of button to deselect all
-			$("#select-all").text("Deselect All");
+			$("#select-all").text("Deselect All ");
+			$("#select-all").append("<i class='fa fa-check-square-o'></i>");
 
 		}
 
@@ -293,7 +295,8 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 			selected_imgs = [];
 
 			//change name of button to select all
-			$("#select-all").text("Select All");
+			$("#select-all").text("Select All ");
+			$("#select-all").append("<i class='fa fa-check-square-o'></i>");
 		}
 		//change delete button state
 		num_checked = count_checked();
@@ -449,6 +452,12 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		msg = msg.toLowerCase();
 
 		var $type = $( "#" + msg);
+		var font_awesome_icon = "";
+
+		if(msg.localeCompare("delete") == 0)
+			font_awesome_icon = "<i class='fa fa-trash'></i>";
+		else if (msg.localeCompare("save") == 0)
+			font_awesome_icon = "<i class='fa fa-floppy-o'></i>";
 
 		msg = msg.capitalizeFirstLetter();
 
@@ -456,19 +465,22 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 
 			$type.addClass("disabled");
 			$type.prop('disabled', true);
-			$type.text(msg + " Image");
+			$type.text(msg + " Image ");
+			$type.append(font_awesome_icon);
 		}
 		else if(value === 1){
 
 			$type.removeClass("disabled");
 			$type.prop('disabled', false);
-			$type.text(msg + " Image");
+			$type.text(msg + " Image ");
+			$type.append(font_awesome_icon);
 		}
 		else if(value > 1){
 
 			$type.removeClass("disabled");
 			$type.prop('disabled', false);
-			$type.text(msg + " Images");
+			$type.text(msg + " Images ");
+			$type.append(font_awesome_icon);
 		}
 		else{
 

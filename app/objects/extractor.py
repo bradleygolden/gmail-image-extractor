@@ -477,11 +477,10 @@ class GmailImageExtractor(object):
                         # now we have to handle any duplicate file names
                         # before writing them to the zip file
                         att_type = an_image.name()[-4:]
-                        att_name = an_image.name()[:-4]
+                        att_name = an_image.name()[:-4] # this is overwritten below if there is a duplicate
 
                         # loop until duplicate is not found in the dictionary
                         count = 1
-                        print att_name, att_type
                         while att_name in name_dict:
 
                             # remove previous tag ie name{{1}}
