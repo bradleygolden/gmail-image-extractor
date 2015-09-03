@@ -54,6 +54,9 @@ class GmailImageExtractor(object):
         self.stop = False
         self.num_attachments = 0
         self.attachment_count = 0
+        self.extracted_images = []
+        self.mapping = {}
+        self.num_messages_count = 0
 
     def sign_request(self, raw):
         """Takes a predefined secret key and gmail's unique message id concatenated with
@@ -159,9 +162,6 @@ class GmailImageExtractor(object):
 
         offset = 0
         per_page = min(self.batch, self.limit) if self.limit else self.batch
-        self.extracted_images = []
-        self.mapping = {}
-        self.num_messages_count = 0
         hit_limit = False
 
         #callback to begin extraction process asyncronously
@@ -211,10 +211,13 @@ class GmailImageExtractor(object):
         loop = tornado.ioloop.IOLoop.current()
 
         # extract images from messages using image_generator
-        loop.add_callback(callback=lambda: self.extract_images(images, callback))
+        self.extract_images(images, callback)
+        # loop.add_callback(callback=lambda: self.extract_images(images, callback))
 
+        # TODO - MAJOR BUG HERE - This happens before the images are loaded, therefore now images are displayed!
+        # commenting this line renders self.extracted_images useless
         # send extracted images to front-end for display
-        loop.add_callback(callback=lambda: self.output_images(self.extracted_images, callback))
+        # loop.add_callback(callback=lambda: self.output_images(self.extracted_images, callback))
 
         # get next batch of messages
         loop.add_callback(callback=lambda: self.do_async_extract(offset, per_page, callback, num_messages))
@@ -225,14 +228,15 @@ class GmailImageExtractor(object):
         def _cb(*args):
             if callback:
                 callback(*args)
-        try:
-            image = images.pop(1) # remove the image as it's displayed to prevent duplicates
-            _cb('image', image.msg_id, image.id, image.name, image.encode_preview(), image.type, image.date)
-            loop = tornado.ioloop.IOLoop.current()
-            loop.add_callback(callback=lambda: self.output_images(images, callback))
-        except:
-            #images list is now empty, no more images to output
-            pass
+
+        if len(images) == 0:
+            return;
+
+        image = images.pop(0) # remove the image as it's displayed to prevent duplicates
+        _cb('image', image.msg_id, image.id, image.name, image.encode_preview(), image.type, image.date)
+        # loop = tornado.ioloop.IOLoop.current()
+        # loop.add_callback(callback=lambda: self.output_images(images, callback))
+        self.output_images(self.extracted_images, callback)
 
     def extract_images(self, images, callback=None):
 
@@ -242,14 +246,18 @@ class GmailImageExtractor(object):
         try:
             #recursively call fn to get remaining images if they exists
             image = images.next()
-            #send image to the frontend
-            loop = tornado.ioloop.IOLoop.current()
             self.extracted_images.append(image)
-            loop.add_callback(callback=lambda: self.extract_images(images, callback))
+
+            # send extracted images to front-end for display
+            #loop = tornado.ioloop.IOLoop.current()
+            #loop.add_callback(callback=lambda: self.extract_images(images, callback))
+            self.extract_images(images, callback)
             self.attachment_count += 1
             _cb('attachment-count', self.attachment_count)
 
-        except StopIteration:
+        except:
+            #send images to front end
+            self.output_images(self.extracted_images, callback)
             pass
 
     def order_by_g_id(self, selected_images):

@@ -277,7 +277,7 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 
 			//change name of button to deselect all
 			$("#select-all").text("Deselect All ");
-			$("#select-all").append("<i class='fa fa-check-square-o'></i>");
+			$("#select-all").append("<i class='fa fa-square-o'></i>");
 
 		}
 

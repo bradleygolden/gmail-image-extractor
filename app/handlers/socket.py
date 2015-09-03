@@ -47,6 +47,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         email = self.get_secure_cookie('email')
         num_messages = 0
         self.extraction_complete = False
+        self.attachment_count = 0
 
         state['extractor'] = GmailImageExtractor(email,
                                                  access_token, limit=int(msg['limit']),
@@ -92,15 +93,14 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
                     if args[0] == 'download-complete':
                         self.extraction_complete = True
-
-                    if args[0] == 'attachment-count' and self.extraction_complete:
-                        attachment_count = args[1] - 1
-                        self.attachment_count = attachment_count
                         self.write_message({"ok": True,
                             "type": "download-complete",
                             "msg": "Succesfully found {0} {1}"
-                            "".format(attachment_count, plural(u"image", attachment_count)),
-                            "num": attachment_count})
+                            "".format(self.attachment_count, plural(u"image", self.attachment_count)),
+                            "num": self.attachment_count})
+
+                    if args[0] == 'attachment-count':
+                        self.attachment_count = args[1]
 
             extractor = state['extractor']
             loop = tornado.ioloop.IOLoop.current()

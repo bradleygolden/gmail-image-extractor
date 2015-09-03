@@ -2,6 +2,7 @@ import base64
 from pygmail.message import Attachment
 import StringIO
 import PIL
+from hashlib import sha256
 
 EXTENSIONS = ('jpeg', 'png', 'gif')
 
@@ -59,6 +60,9 @@ class Image(Attachment):
 
     def get_att_id(self, att):
         return hex(id(att))
+
+    def get_secure_id(self, att):
+        return sha256(self.get_att_id(att)).hexdigest()
 
     def get_att_name(self, att):
         return att.name()
