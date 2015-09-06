@@ -262,9 +262,7 @@ class GmailImageExtractor(object):
 
         for gmail_id in ordered_by_gmail_id:
             message_to_change = self.mapping[gmail_id][0]
-            print message_to_change
             attach_ids = {hex(id(a)): a for a in message_to_change.attachments()}
-            print attach_ids
 
             for an_attachment in ordered_by_gmail_id[gmail_id]:
                 if gmail_id in messages_to_change:
