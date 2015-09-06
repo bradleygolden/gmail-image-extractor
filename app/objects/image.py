@@ -2,13 +2,17 @@ import base64
 from pygmail.message import Attachment
 import StringIO
 import PIL
-from hashlib import sha256
+import config
+import hmac
+import hashlib
 
 EXTENSIONS = ('jpeg', 'png', 'gif')
 
 class Image(Attachment):
 
     def __init__(self, msg, att):
+        # self.msg_id = self.get_secure_id(msg.gmail_id)
+        # self.id = self.get_secure_id(self.get_att_id(att))
         self.msg_id = msg.gmail_id
         self.id = self.get_att_id(att)
         self.name = self.get_att_name(att)
@@ -61,8 +65,8 @@ class Image(Attachment):
     def get_att_id(self, att):
         return hex(id(att))
 
-    def get_secure_id(self, att):
-        return sha256(self.get_att_id(att)).hexdigest()
+    def get_secure_id(self, id):
+        return hmac.new(config.hmac_key, id, hashlib.sha256).hexdigest()
 
     def get_att_name(self, att):
         return att.name()

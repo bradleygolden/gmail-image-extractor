@@ -12,7 +12,10 @@ import zipfile
 import time
 import tornado
 from app.objects.image import Image
+import app.objects.image
 import re
+
+from time import gmtime, strftime
 
 
 ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
@@ -57,21 +60,9 @@ class GmailImageExtractor(object):
         self.extracted_images = []
         self.mapping = {}
         self.num_messages_count = 0
-
-    def sign_request(self, raw):
-        """Takes a predefined secret key and gmail's unique message id concatenated with
-        the hash of the image within that message. Sha256 is used for hashing.
-
-        Return:
-            An authenticated hash using the specified hmac_key in
-            config.py.
-        """
-
-        key = config.hmac_key
-        self.raw = raw
-        hashed = hmac.new(key, raw, sha256)
-
-        return hashed.digest().encode("base64").rstrip('\n')
+        self.offset = 0
+        self.per_page = 0
+        self.num_messages = 0
 
     def connect(self):
         """Attempts to connect to Gmail using the username and access_token provided
@@ -121,28 +112,37 @@ class GmailImageExtractor(object):
                     an_image = Image(a_message, att)
 
                     # map each image id with a corresponding message id for later parsing
-                    # TODO - fix mapping
                     if an_image.id in self.mapping:
                         self.mapping[msg_id].append(a_message)
                     else:
                         self.mapping[msg_id] = [a_message]
 
                     self.num_attachments = self.count_attachments(self.num_attachments)
+
                     yield an_image
 
     def count_attachments(self, num_att):
         return num_att + 1
 
-    def message_batch(self, offset, per_page, search_string="has:attachment"):
+    def fetch_message_batch(self, search_string="has:attachment", callback=None):
 
-        messages = self.inbox.search(search_string, full=True,
-                                     limit=per_page, offset=offset)
+        # on response from server return with messages
+        def _on_response(*args):
+            if callback:
+                self.offset += len(args[0])
+                callback(*args)
 
-        offset += len(messages)
+        # messages = self.inbox.search(search_string, full=True,
+        #                              limit=per_page, offset=offset, callback=callback)
 
-        return messages, offset
+        self.inbox.search(search_string, full=True,
+                                     limit=self.per_page, offset=self.offset, callback=_on_response)
 
-    def async_extract(self, callback=None, num_messages=False):
+        # offset += len(messages)
+
+        # return messages, offset
+
+    def extract(self, callback=None, num_messages=False):
         """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
         and sends them via websocket to the frontend.
 
@@ -157,18 +157,17 @@ class GmailImageExtractor(object):
             if callback:
                 callback(*args)
 
-        if num_messages == False:
-            num_messages = self.num_messages_with_attachments()
+        if not num_messages:
+            self.num_messages = self.num_messages_with_attachments()
 
-        offset = 0
-        per_page = min(self.batch, self.limit) if self.limit else self.batch
+        self.per_page = min(self.batch, self.limit) if self.limit else self.batch
+
         hit_limit = False
 
         #callback to begin extraction process asyncronously
-        loop = tornado.ioloop.IOLoop.current()
-        loop.add_callback(callback=lambda: self.do_async_extract(offset, per_page, callback, num_messages));
+        self.do_extract(callback);
 
-    def do_async_extract(self, offset, per_page, callback=None, num_messages=False):
+    def do_extract(self, callback=None):
         """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
         and sends them via websocket to the frontend.
 
@@ -191,37 +190,28 @@ class GmailImageExtractor(object):
             if callback:
                 callback(*args)
 
-        # check if user hit stop
-        if self.stop == True:
-            _cb('download-complete', num_messages)
-            return
+        def _on_message_batch_fetched(*args):
+            messages = args[0]
+
+            if len(messages) == 0:
+                _cb('download-complete', self.num_messages)
+                self.stop = True;
+                return
+
+            else:
+                _cb('message', self.offset)
+
+                #generator that produces images from given messages
+                images = self.image_generator(messages, callback)
+
+                # extract images from messages using image_generator
+                self.extract_images(images, callback)
+
+                #call for the next message batch
+                self.do_extract(callback)
 
         # get messages for extraction, keep track of the offset for future batches
-        messages, offset = self.message_batch(offset, per_page)
-
-        if len(messages) == 0:
-            _cb('download-complete', num_messages)
-            return
-
-        _cb('message', offset)
-
-        #generator that produces images from given messages
-        images = self.image_generator(messages, callback)
-
-        loop = tornado.ioloop.IOLoop.current()
-
-        # extract images from messages using image_generator
-        self.extract_images(images, callback)
-        # loop.add_callback(callback=lambda: self.extract_images(images, callback))
-
-        # TODO - MAJOR BUG HERE - This happens before the images are loaded, therefore now images are displayed!
-        # commenting this line renders self.extracted_images useless
-        # send extracted images to front-end for display
-        # loop.add_callback(callback=lambda: self.output_images(self.extracted_images, callback))
-
-        # get next batch of messages
-        loop.add_callback(callback=lambda: self.do_async_extract(offset, per_page, callback, num_messages))
-
+        self.fetch_message_batch(callback=_on_message_batch_fetched)
 
     def output_images(self, images, callback=None):
 
@@ -234,8 +224,6 @@ class GmailImageExtractor(object):
 
         image = images.pop(0) # remove the image as it's displayed to prevent duplicates
         _cb('image', image.msg_id, image.id, image.name, image.encode_preview(), image.type, image.date)
-        # loop = tornado.ioloop.IOLoop.current()
-        # loop.add_callback(callback=lambda: self.output_images(images, callback))
         self.output_images(self.extracted_images, callback)
 
     def extract_images(self, images, callback=None):
@@ -249,8 +237,6 @@ class GmailImageExtractor(object):
             self.extracted_images.append(image)
 
             # send extracted images to front-end for display
-            #loop = tornado.ioloop.IOLoop.current()
-            #loop.add_callback(callback=lambda: self.extract_images(images, callback))
             self.extract_images(images, callback)
             self.attachment_count += 1
             _cb('attachment-count', self.attachment_count)
@@ -276,7 +262,9 @@ class GmailImageExtractor(object):
 
         for gmail_id in ordered_by_gmail_id:
             message_to_change = self.mapping[gmail_id][0]
+            print message_to_change
             attach_ids = {hex(id(a)): a for a in message_to_change.attachments()}
+            print attach_ids
 
             for an_attachment in ordered_by_gmail_id[gmail_id]:
                 if gmail_id in messages_to_change:
@@ -295,9 +283,9 @@ class GmailImageExtractor(object):
         Returns:
             A dict of message attachments sorted by gmail_id
 
-            i.e. {"12345": [<pygmail.message.Attachment object at 0x321,
-                            <pygmail.message.Attachment object at 0x331],
-                  "98765": [<pygmail.message.Attachment object at 0x543]}
+            i.e. {"12345": [54674,
+                            19201,
+                  "98765": [45069]}
         """
 
         ordered_by_gmail_id = dict()
@@ -494,7 +482,7 @@ class GmailImageExtractor(object):
                             # remove previous tag ie name{{1}}
                             # if a file name looks like beg{{1}}end{{1}} then
                             # the resulting name will be begend{{1}}
-                            # This is a small quirk, fix it if you'd like!
+                            # This is a small quirk, fix it if you'd like.
                             att_name = re.split("\{\{[0-9]*\}\}", att_name)[0]
 
                             att_name = att_name + "{{" + str(count) + "}}"

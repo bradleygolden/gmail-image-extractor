@@ -103,8 +103,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         self.attachment_count = args[1]
 
             extractor = state['extractor']
-            loop = tornado.ioloop.IOLoop.current()
-            loop.add_callback(callback=lambda: extractor.async_extract(_status, num_messages=num_messages))
+            extractor.extract(_status, num_messages=num_messages)
 
     def _handle_delete(self, msg):
         extractor = state['extractor']
