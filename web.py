@@ -42,6 +42,10 @@ class Application(tornado.web.Application):
             google_oauth={"key": config.oauth2_client_id, "secret": config.oauth2_client_secret},
             default_handler_class=app.handlers.error.ErrorHandler,
             default_handler_args=dict(status_code=404),
+            ssl_options={
+                "certfile": config.root_path + '/Gmail-Image-Extractor/keys/ca.csr',
+                "keyfile": config.root_path + '/Gmail-Image-Extractor/keys/ca.key',
+            },
         )
 
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -59,7 +63,8 @@ def main():
     tornado.options.parse_command_line()
     application = Application()
     server_prompt()
-    application.listen(options.port)
+    server = tornado.httpserver.HTTPServer(application)
+    server.listen(options.port)
     tornado.ioloop.IOLoop.current().start()
 
 

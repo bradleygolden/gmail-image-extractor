@@ -336,7 +336,7 @@ class GmailImageExtractor(object):
 
         return num_messages_changed, num_images_deleted
 
-    def delete(self, msg, label='"Images redacted"', callback=None):
+    def delete(self, selected_images, label='"Images redacted"', callback=None):
         """
         Keyword Args:
             label    -- Gmail label to use either as a temporary work label
@@ -358,17 +358,19 @@ class GmailImageExtractor(object):
             were altered.
             """
 
-        if len(msg) == 0:
+        if len(selected_images) == 0:
             return 0, 0
 
         def _cb(*args):
             if callback:
                 callback(*args)
 
+        print type(selected_images)
+
         messages = {}
 
         try:
-            messages = self.parse_selected_images(msg)
+            messages = self.parse_selected_images(selected_images)
         except:
             # print "Couldn't parse selected images."
             pass
