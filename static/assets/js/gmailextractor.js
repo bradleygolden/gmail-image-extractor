@@ -3,41 +3,43 @@ jQuery(function ($) {
 	//TODO - force delete to delete images from the frond end and
 	// queue a removal in the backend
 
-var prog_hidden = true,
-loc = window.location,
-$prog_container = $(".progress"),
-$prog = $(".progress-bar"),
-$results_container = $(".results"),
-$status = $(".status"),
-$status = $(".status"),
-$alert = $(".alert"),
-$download_link = $(".download-link"),
-timer = null,
-$stop = $("#stop"),
-$rescan = $("#rescan"),
-$delete_confirmed = $("#delete-confirmed"),
-$select_all = $("#select-all"),
-select_bool = false,
-$images_menu = $("#images-menu"),
-$save = $("#save"),
-feedback = null,
-selected_imgs = [],
-download_complete = false,
-num_attachments_found = 0,
-stopped = false,
-ws = new WebSocket("ws://" + loc.host + "/ws");
+	var prog_hidden = true,
+	loc = window.location,
+	$prog_container = $(".progress"),
+	$prog = $(".progress-bar"),
+	$results_container = $(".results"),
+	$status = $(".status"),
+	$status = $(".status"),
+	$alert = $(".alert"),
+	$download_link = $(".download-link"),
+	timer = null,
+	$stop = $("#stop"),
+	$rescan = $("#rescan"),
+	$delete_confirmed = $("#delete-confirmed"),
+	$select_all = $("#select-all"),
+	select_bool = false,
+	$images_menu = $("#images-menu"),
+	$save = $("#save"),
+	$pager_container = $(".wrapper");
+	feedback = null,
+	selected_imgs = [],
+	download_complete = false,
+	num_attachments_found = 0,
+	stopped = false,
+	images_per_page = 1,
+	ws = new WebSocket("ws://" + loc.host + "/ws");
 
 	//window.onload = function(){
 	connect = function(){
 
-			var params = JSON.stringify({
-				"type": "connect",
-				"limit": 0,
-				"simultaneous": 10,
-				"rewrite": 1
-			});
+		var params = JSON.stringify({
+			"type": "connect",
+			"limit": 0,
+			"simultaneous": 10,
+			"rewrite": 1
+		});
 
-			ws.send(params);
+		ws.send(params);
 
 	};
 
@@ -83,6 +85,8 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		$('#save').prop('disabled', true);
 		$('#delete').prop('disabled', true);
 		$('#select-all').prop('disabled', true);
+		$('#pager-next').prop('disabled', true);
+		$('#pager-prev').prop('disabled', true);
 	};
 
 	//displays images in the browser as they are found in the users mailbox
@@ -97,15 +101,16 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 	};
 
 	$thumbnail = function(img) {
-		return ('<div class="col-xs-6 col-md-3 grid-item" style="position:relative">' +
-								  '<div class="thumbnail">' +
-								  '<input class="img-checkbox" id="' + img.id +
-								  '" name="' + img.msg_id + '" type="checkbox" style="display:none" "">' +
-								  '<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' +
-								  '<img src="' + img.src + '">' +
-								  '</a>' +
-								  '</div>' +
-								  '</div>');
+
+		return ('<div class="col-xs-6 col-md-3 grid-item">' +
+		'<div class="thumbnail">' +
+		'<input class="img-checkbox" id="' + img.id +
+		'" name="' + img.msg_id + '" type="checkbox" style="display:none">' +
+		'<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' +
+		'<img src="' + img.src + '">' +
+		'</a>' +
+		'</div>' +
+		'</div>');
 	};
 
 	previewImage = function (image_body) {
@@ -191,11 +196,11 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		//display a circle progress timer for save link
 		if (msg['type'].localeCompare("saved-zip") == 0){
 			$('.circle').circleProgress({
-						value: 0.0,
-						size: 100,
-						fill: {
-								gradient: ["red", "orange"]
-						}
+				value: 0.0,
+				size: 100,
+				fill: {
+					gradient: ["red", "orange"]
+				}
 			});
 		}
 
@@ -225,18 +230,18 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		}
 
 		function animateUpdate() {
-		    var now = new Date();
-		    var timeDiff = now.getTime() - start.getTime();
-		    var perc = Math.round((timeDiff/maxTime)*100);
-		      if (perc <= 100) {
-		       updateProgress(perc);
-					 clearTimeout(timer);
-		       timer = setTimeout(animateUpdate, timeoutVal);
-		      }
-					else {
-						//end the timer and remove the save link
-						hide_download_link();
-					}
+			var now = new Date();
+			var timeDiff = now.getTime() - start.getTime();
+			var perc = Math.round((timeDiff/maxTime)*100);
+			if (perc <= 100) {
+				updateProgress(perc);
+				clearTimeout(timer);
+				timer = setTimeout(animateUpdate, timeoutVal);
+			}
+			else {
+				//end the timer and remove the save link
+				hide_download_link();
+			}
 		}
 	};
 
@@ -358,13 +363,13 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		$("#delete-modal").modal('hide');
 
 		//animate and remove thumnail from front-end
-	  $('input:checked').closest('.thumbnail').animate({
-	    opacity: 0.25,
-	    left: "+=50",
-	    height: "toggle"
-	  	}, 5000, function() {
-	    $('input:checked').parents('div').eq(1).remove();
-	  });
+		$('input:checked').closest('.thumbnail').animate({
+			opacity: 0.25,
+			left: "+=50",
+			height: "toggle"
+		}, 5000, function() {
+			$('input:checked').parents('div').eq(1).remove();
+		});
 	});
 
 	$(document).on( "click", "input.img-checkbox", function() {
@@ -455,9 +460,9 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		var font_awesome_icon = "";
 
 		if(msg.localeCompare("delete") == 0)
-			font_awesome_icon = "<i class='fa fa-trash'></i>";
+		font_awesome_icon = "<i class='fa fa-trash'></i>";
 		else if (msg.localeCompare("save") == 0)
-			font_awesome_icon = "<i class='fa fa-floppy-o'></i>";
+		font_awesome_icon = "<i class='fa fa-floppy-o'></i>";
 
 		msg = msg.capitalizeFirstLetter();
 
@@ -507,7 +512,7 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		msg = "";
 		image_count = count_images();
 		msg_courtesy = "Please check all attachments that" +
-													" you want to remove from your Gmail account."
+		" you want to remove from your Gmail account."
 
 
 		if (image_count == 0){
@@ -529,64 +534,64 @@ ws = new WebSocket("ws://" + loc.host + "/ws");
 		switch (msg['type']) {
 
 			case "ws-open":
-				feedback(msg);
-				connect();
-				break;
+			feedback(msg);
+			connect();
+			break;
 
 			case "connect":
-				feedback(msg);
-				if(msg.ok)
-					$images_menu.fadeIn();
-				break;
+			feedback(msg);
+			if(msg.ok)
+			$images_menu.fadeIn();
+			break;
 
 			case "count":
-				feedback(msg);
-				num_messages = msg.num;
-				break;
+			feedback(msg);
+			num_messages = msg.num;
+			break;
 
 			case "image":
-				if (!stopped){
-					var img = msg;
-					update_results(img);
-				}
+			if (!stopped){
+				var img = msg;
+				update_results(img);
+			}
 			break;
 
 			case "downloading":
-				if(!stopped){
-					feedback(msg);
-					update_progress(msg.num, num_messages);
-				}
+			if(!stopped){
+				feedback(msg);
+				update_progress(msg.num, num_messages);
+			}
 			break;
 
 			case "download-complete":
-				if (!stopped){
-					feedback(msg, "Please check all attachments that you want to remove from your Gmail account.");
-					num_attachments_found = msg.num;
-					download_complete = true;
-					hide_stop_btn();
-					show_rescan_btn();
-					hide_progress();
-				}
-				break;
+			if (!stopped){
+				feedback(msg, "Please check all attachments that you want to remove from your Gmail account.");
+				num_attachments_found = msg.num;
+				download_complete = true;
+				hide_stop_btn();
+				show_rescan_btn();
+				hide_progress();
+			}
+			break;
 
 			case "stopped":
-				//handled by $stop.click
-				break;
+			//handled by $stop.click
+			break;
 
 			case "saved-zip":
-				feedback(msg);
-				startTimer(parseInt(msg.time));
-				break;
+			feedback(msg);
+			startTimer(parseInt(msg.time));
+			break;
 
 			case "removed-zip":
-				//handled by front end
-				//use this if you want to tell the user that the backend removed
-				//the zip files succesfully
-				break;
+			//handled by front end
+			//use this if you want to tell the user that the backend removed
+			//the zip files succesfully
+			break;
 
 			case "image-removed":
-				remove_image(msg.gmail_id, msg.image_id)
-				break;
+			remove_image(msg.gmail_id, msg.image_id)
+			break;
 		}
 	};
 

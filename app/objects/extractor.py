@@ -14,6 +14,8 @@ import tornado
 from app.objects.image import Image
 import app.objects.image
 import re
+import math
+import uuid
 
 from time import gmtime, strftime
 
@@ -63,6 +65,7 @@ class GmailImageExtractor(object):
         self.offset = 0
         self.per_page = 0
         self.num_messages = 0
+        self.num_imap_requests = 4
 
     def connect(self):
         """Attempts to connect to Gmail using the username and access_token provided
@@ -137,10 +140,6 @@ class GmailImageExtractor(object):
 
         self.inbox.search(search_string, full=True,
                                      limit=self.per_page, offset=self.offset, callback=_on_response)
-
-        # offset += len(messages)
-
-        # return messages, offset
 
     def extract(self, callback=None, num_messages=False):
         """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
@@ -439,6 +438,10 @@ class GmailImageExtractor(object):
 
             return False
 
+    def create_secure_file_name(self):
+        # make a random UUID
+        return uuid.uuid4()
+
     def get_abs_path(self, file_name=None):
         home_path = os.path.expanduser("~")
         save_path = "/Gmail-Image-Extractor/download/"
@@ -449,13 +452,17 @@ class GmailImageExtractor(object):
 
         return abs_path
 
-    def do_save(self, messages_to_save, email, callback=None):
+    def do_save(self, messages_to_save, callback=None):
 
         def _cb(*args):
             if callback:
                 callback(*args)
 
-        file_name = email + ".zip"
+        # create a secure filename
+        secured_file_name = self.create_secure_file_name();
+
+        file_name = str(secured_file_name) + ".zip"
+
         name_dict = dict()
 
         try:
@@ -504,31 +511,30 @@ class GmailImageExtractor(object):
         finally:
             zf.close()
 
-    def remove_zip(self, file_no_ext=None, callback=None):
+    def remove_zip(self, file_name, callback=None):
 
-        if not file_no_ext:
+        if not file_name:
             return
 
         def _cb(*args):
             if callback:
                 callback(*args)
 
-        file_w_ext = self.get_abs_path(file_no_ext)
+        file_name_no_ext = os.path.splitext(file_name)[0]
+        abs_path_file_name = self.get_abs_path(file_name_no_ext)
 
-        if file_w_ext:
+        try:
+            # remove folder and contents
+            os.remove(abs_path_file_name)
+            if callback:
+                try:
+                    _cb('removed-zip', True)
+                except:
+                    pass
+        finally:
+            return
 
-            try:
-                # remove folder and contents
-                os.remove(file_w_ext)
-                if callback:
-                    try:
-                        _cb('removed-zip', True)
-                    except:
-                        pass
-            finally:
-                return
-
-    def save(self, msg, email, callback=None):
+    def save(self, msg, callback=None):
         """
         Arranges msg by gmailid and attachment
         Wrapper for do_save function
@@ -538,7 +544,7 @@ class GmailImageExtractor(object):
                 callback(*args)
         try:
             messages = self.parse_selected_images(msg)
-            self.do_save(messages, email, callback)
+            self.do_save(messages, callback)
         except:
             _cb("save_failed", [])
         finally:

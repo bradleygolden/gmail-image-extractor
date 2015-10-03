@@ -22,6 +22,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                             "type": "ws-open",
                             "msg": u"Waiting for the server..."})
         self.timer = None
+        self.file_name = ""
 
     def on_message(self, message):
         msg = tornado.escape.json_decode(message)
@@ -150,11 +151,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
             if update_type == "saved-zip":
                 save_zip_passed = args[1]
-                file_name = args[2]
-                file_link = file_name
+                self.file_name = args[2]
 
-                download_path = "/download/" + file_link
-
+                download_path = "/download/" + self.file_name
                 if save_zip_passed:
                     self.write_message({"ok": True,
                                         "link": u"""<a href="{0}"
@@ -176,10 +175,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                         "time": config.zip_removal_countdown/60})
 
                     def _remove_link():
-                        email = self.get_secure_cookie('email')
                         try:
-                            extractor.remove_zip(email, _save_status)
+                            extractor.remove_zip(self.file_name, _save_status)
                         except:
+                            print "Failed to remove", self.file_name, "for user", self.get_secure_cookie('email')
                             return
                         self.write_message({"ok": True,
                                             "type": "removed-zip",
@@ -195,9 +194,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     self.write_message(self.write(
                         "<span> Failed to create zip file :( </span>"))
 
-        email = self.get_secure_cookie('email')
+        # email = self.get_secure_cookie('email')
         try:
-            extractor.save(msg, email, _save_status)
+            extractor.save(msg, _save_status)
         except:
             pass
 
@@ -218,8 +217,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     except:
                         pass
 
-        email = self.get_secure_cookie('email')
-
         # first clear any pending timeouts
         if self.timer:
             loop = tornado.ioloop.IOLoop.instance()
@@ -227,7 +224,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             self.timer = None
 
         # remove the zip file upon timeout or user request
-        extractor.remove_zip(email, _remove_status)
+        extractor.remove_zip(self.file_name, _remove_status)
 
     def _handle_sync(self, msg):
         extractor = state['extractor']
