@@ -24,10 +24,10 @@ ATTACHMENT_MIMES = ('image/jpeg', 'image/png', 'image/gif')
 
 
 class GmailImageExtractor(object):
-    """Image extracting class which handles connecting to gmail on behalf of
-    a user over IMAP, extracts images from messages in a Gmail account,
-    sends them over websockets to be displayed on a web page, allows users, and
-    then syncronizes the messages in the gmail account by deleting the
+    """Image extracting class handles connecting to gmail on behalf of
+    a user over IMAP, extracting images from messages in a Gmail account,
+    sending them over websockets to be displayed on a web page,
+    syncronizing the messages in the gmail account by deleting the
     images the user selected in the web interface.
     """
 
@@ -46,10 +46,6 @@ class GmailImageExtractor(object):
                        in place (True) or to just write a second, parallel
                        copy of the altered message and leave the original
                        version alone.
-
-        raise:
-            ValueError -- If the given dest path to write extracted images to
-                          is not writeable.
         """
         self.limit = limit
         self.batch = batch
@@ -86,254 +82,12 @@ class GmailImageExtractor(object):
             self.inbox = mail.all_mailbox()
             return True
 
-    def num_messages_with_attachments(self):
-        """Checks to see how many Gmail messages have attachments in the
-        currently connected gmail account.
-
-        This should only be called after having succesfully connected to Gmail.
-
-        Return:
-            The number of messages in the Gmail account that have at least one
-            attachment (as advertised by Gmail).
-        """
-
-        limit = self.limit if self.limit > 0 else False
-        gm_ids = self.inbox.search("has:attachment", gm_ids=True, limit=limit)
-        return len(gm_ids)
-
-    def image_generator(self, some_messages, callback=None):
-        """Generator for images in a given mailbox"""
-        offset = 0
-        outer = 0
-        inner = 0
-
-        for a_message in some_messages:
-            msg_id = a_message.gmail_id
-            for att in a_message.attachments():
-                if att.type in ATTACHMENT_MIMES:
-                    att_type = att.type.split("/")[1]
-                    an_image = Image(a_message, att)
-
-                    # map each image id with a corresponding message id for later parsing
-                    if an_image.id in self.mapping:
-                        self.mapping[msg_id].append(a_message)
-                    else:
-                        self.mapping[msg_id] = [a_message]
-
-                    self.num_attachments = self.count_attachments(self.num_attachments)
-
-                    yield an_image
-
     def count_attachments(self, num_att):
         return num_att + 1
 
-    def fetch_message_batch(self, search_string="has:attachment", callback=None):
-
-        # on response from server return with messages
-        def _on_response(*args):
-            if callback:
-                self.offset += len(args[0])
-                callback(*args)
-
-        # messages = self.inbox.search(search_string, full=True,
-        #                              limit=per_page, offset=offset, callback=callback)
-
-        self.inbox.search(search_string, full=True,
-                                     limit=self.per_page, offset=self.offset, callback=_on_response)
-
-    def extract(self, callback=None, num_messages=False):
-        """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
-        and sends them via websocket to the frontend.
-
-        Note: This is a wrapper for do_async_extract
-
-        Keyword Args:
-            callback -- An optional function that will be called with updates
-            about the image extraction process.
-        """
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-
-        if not num_messages:
-            self.num_messages = self.num_messages_with_attachments()
-
-        self.per_page = min(self.batch, self.limit) if self.limit else self.batch
-
-        hit_limit = False
-
-        #callback to begin extraction process asyncronously
-        self.do_extract(callback);
-
-    def do_extract(self, callback=None):
-        """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
-        and sends them via websocket to the frontend.
-
-        Keyword Args:
-            num_messages_with_attachments -- The total number of messages with attachments
-            offset -- Same as the number of images extracted thus far.
-            This argument also gives the Pygmail interface a reference
-            point as to where to extract messages.
-            per_page -- This program extracts messages in batches. This
-            argument determines how many messages to extract per batch.
-            callback -- An optional function that will be called with updates
-            about the image extraction process. If provided,
-            will be called with either the following arguments:
-                            ('message', first)
-                            when fetching messages from Gmail, where `first` is the
-                            index of the current message being downloaded.
-        """
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-
-        def _on_message_batch_fetched(*args):
-            messages = args[0]
-
-            if len(messages) == 0:
-                _cb('download-complete', self.num_messages)
-                self.stop = True;
-                return
-
-            else:
-                _cb('message', self.offset)
-
-                #generator that produces images from given messages
-                images = self.image_generator(messages, callback)
-
-                # extract images from messages using image_generator
-                self.extract_images(images, callback)
-
-                #call for the next message batch
-                self.do_extract(callback)
-
-        # get messages for extraction, keep track of the offset for future batches
-        self.fetch_message_batch(callback=_on_message_batch_fetched)
-
-    def output_images(self, images, callback=None):
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-
-        if len(images) == 0:
-            return;
-
-        image = images.pop(0) # remove the image as it's displayed to prevent duplicates
-        _cb('image', image.msg_id, image.id, image.name, image.encode_preview(), image.type, image.date)
-        self.output_images(self.extracted_images, callback)
-
-    def extract_images(self, images, callback=None):
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-        try:
-            #recursively call fn to get remaining images if they exists
-            image = images.next()
-            self.extracted_images.append(image)
-
-            # send extracted images to front-end for display
-            self.extract_images(images, callback)
-            self.attachment_count += 1
-            _cb('attachment-count', self.attachment_count)
-
-        except:
-            #send images to front end
-            self.output_images(self.extracted_images, callback)
-            pass
-
-    def order_by_g_id(self, selected_images):
-        ordered_by_g_id = dict()
-
-        for gmail_id, an_attachment in selected_images['image']:
-                if gmail_id in ordered_by_g_id:
-                    ordered_by_g_id[gmail_id].append(an_attachment)
-                else:
-                    ordered_by_g_id[gmail_id] = [an_attachment]
-
-        return ordered_by_g_id
-
-    def replace_att_id(self, ordered_by_gmail_id):
-        messages_to_change = dict()
-
-        for gmail_id in ordered_by_gmail_id:
-            message_to_change = self.mapping[gmail_id][0]
-            attach_ids = {hex(id(a)): a for a in message_to_change.attachments()}
-
-            for an_attachment in ordered_by_gmail_id[gmail_id]:
-                if gmail_id in messages_to_change:
-                    messages_to_change[gmail_id].append(attach_ids[an_attachment])
-                else:
-                    messages_to_change[gmail_id] = [attach_ids[an_attachment]]
-
-        return messages_to_change
-
-    def parse_selected_images(self, selected_images):
-        """Takes in a dictionary message containing both unique message
-        identifiers and unique image identifiers and sorts them. This is
-        done because multiple images can be selected for deletion and
-        multiple images can be in the same message.
-
-        Returns:
-            A dict of message attachments sorted by gmail_id
-
-            i.e. {"12345": [54674,
-                            19201,
-                  "98765": [45069]}
-        """
-
-        ordered_by_gmail_id = dict()
-
-        # first group and order selected images by gmail_id and attachment_id
-        ordered_by_gmail_id = self.order_by_g_id(selected_images)
-
-        # replace attachment_id with attachment object from message with corresponding gmail_id
-        parsed_selected = self.replace_att_id(ordered_by_gmail_id)
-
-        return parsed_selected
-
-    def do_delete(self, messages_to_change, callback=None):
-        """
-        Itereates through a dictionary of messages selected by the user
-        and deletes attachments within those messages.
-
-        This function must be used in conjuction with parse_selected_images.
-
-        Returns:
-            Number of messages where attachments were removed
-        """
-
-        label = "Images redacted"
-
-        num_images_deleted = 0
-        num_images_to_delete = 0
-        image_id = ""
-
-        # calculate total images that need to be deleted
-        for message, some_images in messages_to_change.iteritems():
-            for an_image in some_images:
-                num_images_to_delete += 1
-
-        num_messages_changed = 0
-
-        def _cb(*args):
-            if callback:
-                callback(*args)
-
-        for gmail_id, some_attachments in messages_to_change.iteritems():
-            for an_attachment in some_attachments:
-                image_id = hex(id(an_attachment))
-                if an_attachment.remove():
-                    num_images_deleted += 1
-                    _cb('image-removed', num_images_deleted, num_images_to_delete, gmail_id,
-                        image_id)
-            some_attachments[0].message.save(self.trash_folder.name, safe_label=label)
-            num_messages_changed += 1
-
-        return num_messages_changed, num_images_deleted
+    def create_secure_file_name(self):
+        # make a random UUID
+        return uuid.uuid4()
 
     def delete(self, selected_images, label='"Images redacted"', callback=None):
         """
@@ -378,71 +132,167 @@ class GmailImageExtractor(object):
 
         return num_messages_changed, num_images_deleted
 
-    def zip_images(self, messages_to_save):
+    def do_delete(self, messages_to_change, callback=None):
         """
-        Creates a zip archive of images that were selected by the user.
+        Itereates through a dictionary of messages selected by the user
+        and deletes attachments within those messages.
 
-        This function must be used in conjunction with the function parse_selected_images.
+        This function must be used in conjuction with parse_selected_images.
+
+        Args:
+            messages_to_change -- A dictionary of messages containing images
+
+        Keyword Args:
+            callback           -- A callback used to indicate to the server when
+                                  when a given message is removed
+
+        Returns:
+            Number of messages where attachments were removed
         """
 
-        s = StringIO.StringIO()
+        label = "Images redacted"
 
+        num_images_deleted = 0
+        num_images_to_delete = 0
+        image_id = ""
+
+        # calculate total images that need to be deleted
+        for message, some_images in messages_to_change.iteritems():
+            for an_image in some_images:
+                num_images_to_delete += 1
+
+        num_messages_changed = 0
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        for gmail_id, some_attachments in messages_to_change.iteritems():
+            for an_attachment in some_attachments:
+                image_id = hex(id(an_attachment))
+                if an_attachment.remove():
+                    num_images_deleted += 1
+                    _cb('image-removed', num_images_deleted, num_images_to_delete, gmail_id,
+                        image_id)
+            some_attachments[0].message.save(self.trash_folder.name, safe_label=label)
+            num_messages_changed += 1
+
+        return num_messages_changed, num_images_deleted
+
+    def extract_images(self, images, callback=None):
+        """ Uses the image_generator function to extract an image one by one
+        from the user's messages.
+
+        Args:
+            images  -- A generator for user messages containing images
+
+        Keyword Args:
+            callback    -- Returns information about the current number of attachments
+                        found. The frontend uses this figure to display the status to the user.
+        """
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
         try:
-            with zipfile.ZipFile(s, mode='w') as zf:
-                for message, some_images in messages_to_save.iteritems():
-                    for an_image in some_images:
-                        zf.writestr(an_image.name(), an_image.body())
+            #recursively call fn to get remaining images if they exists
+            image = images.next()
+            self.extracted_images.append(image)
 
-            return True, zf
+            # send extracted images to front-end for display
+            self.extract_images(images, callback)
+            self.attachment_count += 1
+            _cb('attachment-count', self.attachment_count)
 
         except:
-            zf.close()
+            #send images to front end
+            self.output_images(self.extracted_images, callback)
+            pass
 
-            return False
+    def extract(self, callback=None, num_messages=False):
+        """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
+        and sends them via websocket to the frontend.
 
-    def write_zip(self, zip_file, callback=None):
-        """Writes a zip file to a specified save path
+        Note: This is a wrapper for do_extract
+
+        Keyword Args:
+            callback    -- An optional function that will be called with updates
+                           about the image extraction process.
         """
 
         def _cb(*args):
             if callback:
                 callback(*args)
 
-        try:
-            curr_path = os.path.dirname(os.path.abspath(__file__))
+        if not num_messages:
+            self.num_messages = self.num_messages_with_attachments()
 
-            save_path = curr_path + "/user_downloads"
+        self.per_page = min(self.batch, self.limit) if self.limit else self.batch
 
-            if not os.path.exists(save_path):
-                os.makedirs(save_path)
+        hit_limit = False
 
-            name_of_file = "gmail_images.zip"
+        #callback to begin extraction process asyncronously
+        self.do_extract(callback);
 
-            full_file_name = os.path.join(save_path, name_of_file)
+    def do_extract(self, callback=None):
+        """Extracts attachments asyncronously from Gmail messages, encodes them into strings,
+        and sends them via websocket to the frontend.
 
-            fp = open(full_file_name, "w")
+        Keyword Args:
+            callback -- An optional function that will be called with updates
+                        about the image extraction process. If provided,
+                        will be called with either the following arguments:
+                        ('message', first) when fetching messages from Gmail, where `first`
+                        is the index of the current message being downloaded.
+        """
 
-            fp.write(zip_file)
+        def _cb(*args):
+            if callback:
+                callback(*args)
 
-            fp.close()
+        def _on_message_batch_fetched(*args):
+            messages = args[0]
 
-            zip_file.close()
+            if len(messages) == 0:
+                _cb('download-complete', self.num_messages)
+                self.stop = True;
+                return
 
-            _cb('write-zip', True, name_of_file)
+            else:
+                _cb('message', self.offset)
 
-            return True
+                #generator that produces images from given messages
+                images = self.image_generator(messages)
 
-        except:
+                # extract images from messages using image_generator
+                self.extract_images(images, callback)
 
-            _cb('write-zip', False)
+                #call for the next message batch
+                self.do_extract(callback)
 
-            return False
+        # get messages for extraction, keep track of the offset for future batches
+        self.fetch_message_batch(callback=_on_message_batch_fetched)
 
-    def create_secure_file_name(self):
-        # make a random UUID
-        return uuid.uuid4()
+    def fetch_message_batch(self, search_string="has:attachment", callback=None):
+        """Fetch a message batch given specific search string criteria. For more
+            information about gmail search strings,
+            visit: https://support.google.com/mail/answer/7190?hl=en
+        """
+
+        # on response from server return with messages
+        def _on_response(*args):
+            if callback:
+                self.offset += len(args[0])
+                callback(*args)
+
+        self.inbox.search(search_string, full=True,
+                                     limit=self.per_page, offset=self.offset, callback=_on_response)
 
     def get_abs_path(self, file_name=None):
+        """Attaches a usable OS path to a given filename string
+
+            Returns -- A zip file with an absolute path
+        """
         home_path = os.path.expanduser("~")
         save_path = "/Gmail-Image-Extractor/download/"
         abs_path = home_path + save_path
@@ -452,11 +302,205 @@ class GmailImageExtractor(object):
 
         return abs_path
 
+    def image_generator(self, some_messages):
+        """Generator for images in a given mailbox. Allows for iteration through
+        image attachments in a collecion of messages. Also maps each image in a hash
+        to later be referenced by message id.
+
+        Args:
+            some_messages -- An array of gmail messages containing
+                             attachments of various types (including non-images).
+
+        Yield:
+            An inidivual image of type jpg, png, or gif
+        """
+        offset = 0
+        outer = 0
+        inner = 0
+
+        for a_message in some_messages:
+            msg_id = a_message.gmail_id
+            for att in a_message.attachments():
+                if att.type in ATTACHMENT_MIMES:
+                    att_type = att.type.split("/")[1]
+                    an_image = Image(a_message, att)
+
+                    # map each image id with a corresponding message id for later parsing
+                    if an_image.id in self.mapping:
+                        self.mapping[msg_id].append(a_message)
+                    else:
+                        self.mapping[msg_id] = [a_message]
+
+                    self.num_attachments = self.count_attachments(self.num_attachments)
+
+                    yield an_image
+
+    def num_messages_with_attachments(self):
+        """Checks to see how many Gmail messages have attachments in the
+        currently connected gmail account.
+
+        This should only be called after having succesfully connected to Gmail.
+
+        Return:
+            The number of messages in the Gmail account that have at least one
+            attachment (as advertised by Gmail).
+        """
+
+        limit = self.limit if self.limit > 0 else False
+        gm_ids = self.inbox.search("has:attachment", gm_ids=True, limit=limit)
+        return len(gm_ids)
+
+    def order_by_g_id(self, selected_images):
+        """Arranges a list of selected images by their gmail ids"""
+
+        ordered_by_g_id = dict()
+
+        for gmail_id, an_attachment in selected_images['image']:
+                if gmail_id in ordered_by_g_id:
+                    ordered_by_g_id[gmail_id].append(an_attachment)
+                else:
+                    ordered_by_g_id[gmail_id] = [an_attachment]
+
+        return ordered_by_g_id
+
+    def output_images(self, images, callback=None):
+        """Sends an image with the proper formatting for display in the front-end
+
+        Arg:
+            images -- An array of image objects containing the following fields:
+                msg_id  -- A unique id, special to a particular message.
+                          This is same as a gmail id
+                id      -- A unique id for the instantiated image object
+                name    -- The name of the image
+                type    -- The type of the image (jpg, png, gif)
+                body    -- The image body
+                date    -- The date the image was saved in gmail
+                preview -- A compressed version of the image body
+
+        Keyword Args:
+            callback    -- A callback that outputs an image and it's various
+                           attributes to the frontend.
+        """
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        if len(images) == 0:
+            return;
+
+        image = images.pop(0) # remove the image as it's displayed to prevent duplicates
+        _cb('image', image.msg_id, image.id, image.name, image.encode_preview(), image.type, image.date)
+        self.output_images(self.extracted_images, callback)
+
+    def parse_selected_images(self, selected_images):
+        """Takes in a dictionary message containing both unique message
+        identifiers and unique image identifiers and sorts them. This is
+        done because multiple images can be selected for deletion and
+        multiple images can be in the same message.
+
+        Returns:
+            A dict of message attachments sorted by gmail_id
+
+            i.e. {"12345": [54674,
+                            19201,
+                  "98765": [45069]}
+        """
+
+        ordered_by_gmail_id = dict()
+
+        # first group and order selected images by gmail_id and attachment_id
+        ordered_by_gmail_id = self.order_by_g_id(selected_images)
+
+        # replace attachment_id with attachment object from message with corresponding gmail_id
+        parsed_selected = self.replace_att_id(ordered_by_gmail_id)
+
+        return parsed_selected
+
+    def replace_att_id(self, ordered_by_gmail_id):
+        """Takes in a list of messages that are selected by the user and outputs
+        dictionary of messages and their respective image ids. The purpose of this
+        function is to later compare that dict with the images that are in memory.
+
+            Args:
+                ordered_by_gmail_id -- A list of messages that have been selected by
+                                       the user.
+        """
+        messages_to_change = dict()
+
+        for gmail_id in ordered_by_gmail_id:
+            message_to_change = self.mapping[gmail_id][0]
+            attach_ids = {hex(id(a)): a for a in message_to_change.attachments()}
+
+            for an_attachment in ordered_by_gmail_id[gmail_id]:
+                if gmail_id in messages_to_change:
+                    messages_to_change[gmail_id].append(attach_ids[an_attachment])
+                else:
+                    messages_to_change[gmail_id] = [attach_ids[an_attachment]]
+
+        return messages_to_change
+
+    def remove_zip(self, file_name, callback=None):
+        """Removes a given filename from the system
+
+        Args:
+            file_name -- A filename string with an extension
+
+        Keyword Args:
+            callback  -- A callback for notifiying the server when
+                         the image is removed from the OS
+        """
+
+        if not file_name:
+            return
+
+        def _cb(*args):
+            if callback:
+                callback(*args)
+
+        file_name_no_ext = os.path.splitext(file_name)[0]
+        abs_path_file_name = self.get_abs_path(file_name_no_ext)
+
+        try:
+            # remove folder and contents
+            os.remove(abs_path_file_name)
+            if callback:
+                try:
+                    _cb('removed-zip', True)
+                except:
+                    pass
+        finally:
+            return
+
+    def save(self, msg, callback=None):
+        """
+        Arranges msg by gmailid and attachment
+        Wrapper for do_save function
+
+        Args:
+            msg -- A dictionary of messages selected by the user
+
+        Keyword Args:
+            callback -- A callback used to indicate the status of the save process
+        """
+        def _cb(*args):
+            if callback:
+                callback(*args)
+        try:
+            messages = self.parse_selected_images(msg)
+            self.do_save(messages, callback)
+        except:
+            _cb("save_failed", [])
+        finally:
+            return
+
     def do_save(self, messages_to_save, callback=None):
 
         def _cb(*args):
             if callback:
                 callback(*args)
+
+        _cb('zip-in-progress', True)
 
         # create a secure filename
         secured_file_name = self.create_secure_file_name();
@@ -511,41 +555,63 @@ class GmailImageExtractor(object):
         finally:
             zf.close()
 
-    def remove_zip(self, file_name, callback=None):
+    def write_zip(self, zip_file, callback=None):
+        """Writes a zip file to a specified save path
 
-        if not file_name:
-            return
+        Args:
+            zip_file -- A zip file
+
+        Keyword Args:
+            callback == A callback used to indicate the status of write_zip
+        """
 
         def _cb(*args):
             if callback:
                 callback(*args)
 
-        file_name_no_ext = os.path.splitext(file_name)[0]
-        abs_path_file_name = self.get_abs_path(file_name_no_ext)
-
         try:
-            # remove folder and contents
-            os.remove(abs_path_file_name)
-            if callback:
-                try:
-                    _cb('removed-zip', True)
-                except:
-                    pass
-        finally:
-            return
+            _cb('zip-in-progress', True)
+            curr_path = os.path.dirname(os.path.abspath(__file__))
+            save_path = curr_path + "/user_downloads"
 
-    def save(self, msg, callback=None):
-        """
-        Arranges msg by gmailid and attachment
-        Wrapper for do_save function
-        """
-        def _cb(*args):
-            if callback:
-                callback(*args)
-        try:
-            messages = self.parse_selected_images(msg)
-            self.do_save(messages, callback)
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+
+            name_of_file = "gmail_images.zip"
+            full_file_name = os.path.join(save_path, name_of_file)
+            fp = open(full_file_name, "w")
+            fp.write(zip_file)
+            fp.close()
+            zip_file.close()
+            _cb('zip-complete, True')
+            _cb('write-zip', True, name_of_file)
+
+            return True
+
         except:
-            _cb("save_failed", [])
-        finally:
-            return
+
+            _cb('write-zip', False)
+
+            return False
+
+    def zip_images(self, messages_to_save):
+        """
+        Creates a zip archive of images that were selected by the user.
+
+        This function must be used in conjunction with the function parse_selected_images.
+        """
+
+        s = StringIO.StringIO()
+
+        try:
+            with zipfile.ZipFile(s, mode='w') as zf:
+                for message, some_images in messages_to_save.iteritems():
+                    for an_image in some_images:
+                        zf.writestr(an_image.name(), an_image.body())
+
+            return True, zf
+
+        except:
+            zf.close()
+
+            return False

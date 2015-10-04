@@ -1,33 +1,31 @@
 jQuery(function ($) {
 
-	//TODO - force delete to delete images from the frond end and
-	// queue a removal in the backend
-
 	var prog_hidden = true,
-	loc = window.location,
-	$prog_container = $(".progress"),
-	$prog = $(".progress-bar"),
-	$results_container = $(".results"),
-	$status = $(".status"),
-	$status = $(".status"),
-	$alert = $(".alert"),
-	$download_link = $(".download-link"),
-	timer = null,
-	$stop = $("#stop"),
-	$rescan = $("#rescan"),
-	$delete_confirmed = $("#delete-confirmed"),
-	$select_all = $("#select-all"),
-	select_bool = false,
-	$images_menu = $("#images-menu"),
-	$save = $("#save"),
-	$pager_container = $(".wrapper");
-	feedback = null,
-	selected_imgs = [],
-	download_complete = false,
-	num_attachments_found = 0,
-	stopped = false,
-	images_per_page = 1,
-	ws = new WebSocket("ws://" + loc.host + "/ws");
+		loc = window.location,
+		$prog_container = $(".progress"),
+		$prog = $(".progress-bar"),
+		$results_container = $(".results"),
+		$status = $(".status"),
+		$status = $(".status"),
+		$alert = $(".alert"),
+		$download_link = $(".download-link"),
+		timer = null,
+		$stop = $("#stop"),
+		$rescan = $("#rescan"),
+		$delete_confirmed = $("#delete-confirmed"),
+		$select_all = $("#select-all"),
+		select_bool = false,
+		$images_menu = $("#images-menu"),
+		$save = $("#save"),
+		$images_container = $(".images-container"),
+		feedback = null,
+		selected_imgs = [],
+		download_complete = false,
+		num_attachments_found = 0,
+		stopped = false,
+		images_per_page = 1,
+		curr_page_num = 1, // default the current page for thumbnail paging to 1
+		ws = new WebSocket("ws://" + loc.host + "/ws");
 
 	//window.onload = function(){
 	connect = function(){
@@ -85,8 +83,6 @@ jQuery(function ($) {
 		$('#save').prop('disabled', true);
 		$('#delete').prop('disabled', true);
 		$('#select-all').prop('disabled', true);
-		$('#pager-next').prop('disabled', true);
-		$('#pager-prev').prop('disabled', true);
 	};
 
 	//displays images in the browser as they are found in the users mailbox
@@ -96,21 +92,20 @@ jQuery(function ($) {
 		//var thumb_img = new Image();
 		img.src = 'data:image/jpeg;base64,' + img.preview;
 
-		//create thumbnail for image to be displayed in
-		$results_container.append($thumbnail(img));
+		$images_container.append($thumbnail(img));
 	};
 
 	$thumbnail = function(img) {
 
 		return ('<div class="col-xs-6 col-md-3 grid-item">' +
-		'<div class="thumbnail">' +
-		'<input class="img-checkbox" id="' + img.id +
-		'" name="' + img.msg_id + '" type="checkbox" style="display:none">' +
-		'<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' +
-		'<img src="' + img.src + '">' +
-		'</a>' +
-		'</div>' +
-		'</div>');
+				'<div class="thumbnail">' +
+				'<input class="img-checkbox" id="' + img.id +
+				'" name="' + img.msg_id + '" type="checkbox" style="display:none">' +
+				'<a href="javascript:void(0)" onclick="previewImage(\''+img.src+'\')">' +
+				'<img src="' + img.src + '">' +
+				'</a>' +
+				'</div>' +
+				'</div>');
 	};
 
 	previewImage = function (image_body) {
@@ -252,8 +247,8 @@ jQuery(function ($) {
 	}
 
 	/**********************************************
-	Begin click functions
-	**********************************************/
+	  Begin click functions
+	 **********************************************/
 
 	//selects or deselects all images
 	//all images are added to an array or all are removed from an array
@@ -414,8 +409,8 @@ jQuery(function ($) {
 	});
 
 	/**********************************************
-	End click functions
-	**********************************************/
+	  End click functions
+	 **********************************************/
 
 	show_stop_alert = function(){
 		stop_msg = "Stopping the extraction process...";
@@ -460,9 +455,9 @@ jQuery(function ($) {
 		var font_awesome_icon = "";
 
 		if(msg.localeCompare("delete") == 0)
-		font_awesome_icon = "<i class='fa fa-trash'></i>";
+			font_awesome_icon = "<i class='fa fa-trash'></i>";
 		else if (msg.localeCompare("save") == 0)
-		font_awesome_icon = "<i class='fa fa-floppy-o'></i>";
+			font_awesome_icon = "<i class='fa fa-floppy-o'></i>";
 
 		msg = msg.capitalizeFirstLetter();
 
@@ -512,7 +507,7 @@ jQuery(function ($) {
 		msg = "";
 		image_count = count_images();
 		msg_courtesy = "Please check all attachments that" +
-		" you want to remove from your Gmail account."
+			" you want to remove from your Gmail account."
 
 
 		if (image_count == 0){
@@ -534,37 +529,37 @@ jQuery(function ($) {
 		switch (msg['type']) {
 
 			case "ws-open":
-			feedback(msg);
+				feedback(msg);
 			connect();
 			break;
 
 			case "connect":
-			feedback(msg);
+				feedback(msg);
 			if(msg.ok)
-			$images_menu.fadeIn();
+				$images_menu.fadeIn();
 			break;
 
 			case "count":
-			feedback(msg);
+				feedback(msg);
 			num_messages = msg.num;
 			break;
 
 			case "image":
-			if (!stopped){
+				if (!stopped){
 				var img = msg;
 				update_results(img);
 			}
 			break;
 
 			case "downloading":
-			if(!stopped){
+				if(!stopped){
 				feedback(msg);
 				update_progress(msg.num, num_messages);
 			}
 			break;
 
 			case "download-complete":
-			if (!stopped){
+				if (!stopped){
 				feedback(msg, "Please check all attachments that you want to remove from your Gmail account.");
 				num_attachments_found = msg.num;
 				download_complete = true;
@@ -575,22 +570,24 @@ jQuery(function ($) {
 			break;
 
 			case "stopped":
-			//handled by $stop.click
-			break;
+				//handled by $stop.click
+				break;
 
 			case "saved-zip":
-			feedback(msg);
+				feedback(msg);
 			startTimer(parseInt(msg.time));
 			break;
 
-			case "removed-zip":
-			//handled by front end
-			//use this if you want to tell the user that the backend removed
-			//the zip files succesfully
+			case "zipping":
+				feedback(msg);
+			break;
+
+			case "zip-complete":
+				feedback(msg);
 			break;
 
 			case "image-removed":
-			remove_image(msg.gmail_id, msg.image_id)
+				remove_image(msg.gmail_id, msg.image_id)
 			break;
 		}
 	};

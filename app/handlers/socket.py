@@ -143,6 +143,11 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         def _save_status(*args):
             update_type = args[0]
 
+            if update_type == "zip-in-progress":
+                self.write_message({"ok": True,
+                                    "type": "zipping",
+                                    "link": "<span>Packaging images in a zip file...</span>"})
+
             if update_type == "save-passed":
                 self.write_message({"ok": True,
                                     "type": "save",
@@ -194,7 +199,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     self.write_message(self.write(
                         "<span> Failed to create zip file :( </span>"))
 
-        # email = self.get_secure_cookie('email')
         try:
             extractor.save(msg, _save_status)
         except:
