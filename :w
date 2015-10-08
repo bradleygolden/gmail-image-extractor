@@ -18,13 +18,11 @@ def plural(msg, num):
 class SocketHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
+        self.stop = False
         self.attachment_count = 0
-        try:
-            self.write_message({'ok': True,
-                                "type": "ws-open",
-                                "msg": u"Waiting for the server..."})
-        except WebSocketClosedError:
-            pass
+        self.write_message({'ok': True,
+                            "type": "ws-open",
+                            "msg": u"Waiting for the server..."})
         self.timer = None
         self.file_name = ""
 
@@ -59,49 +57,34 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                                  batch=int(msg['simultaneous']),
                                                  replace=bool(msg['rewrite']))
         if not state['extractor'].connect():
-            try:
-                self.write_message({'ok': False,
-                                    "type": "connect",
-                                    'msg': u"Unable to connect to Gmail with provided credentials"})
-            
-            except WebSocketClosedError:
-                pass
+            self.write_message({'ok': False,
+                                "type": "connect",
+                                'msg': u"Unable to connect to Gmail with provided credentials"})
         else:
-            try:
-                self.write_message({'ok': True,
-                                    "type": "connect",
-                                    "msg": u"Successfully connected with Gmail."})
-            
-            except WebSocketClosedError:
-                pass
+            self.write_message({'ok': True,
+                                "type": "connect",
+                                "msg": u"Successfully connected with Gmail."})
 
             num_messages = state['extractor'].num_messages_with_attachments()
-            try:
-                self.write_message({'ok': True,
-                                    "type": "count",
-                                    "msg": u"Found {0} {1} with attachments"
-                                    "".format(num_messages, plural(u"message", num_messages)),
-                                    "num": num_messages})
-
-            except WebSocketClosedError:
-                pass
+            self.write_message({'ok': True,
+                                "type": "count",
+                                "msg": u"Found {0} {1} with attachments"
+                                "".format(num_messages, plural(u"message", num_messages)),
+                                "num": num_messages})
 
             def _status(*args):
-                if extractor.stop:
+                if self.stop:
                     return
                 else:
                     if args[0] == 'image':
-                        try:
-                            self.write_message({"ok": True,
-                                                "type": "image",
-                                                "msg_id": args[1],
-                                                "id": args[2],
-                                                "name": args[3],
-                                                "preview": args[4],
-                                                "ext": args[5],
-                                                "date": args[6]})
-                        except WebSocketClosedError:
-                            pass
+                        self.write_message({"ok": True,
+                                            "type": "image",
+                                            "msg_id": args[1],
+                                            "id": args[2],
+                                            "name": args[3],
+                                            "preview": args[4],
+                                            "ext": args[5],
+                                            "date": args[6]})
 
                     if args[0] == 'message':
                         status_msg = u"Scanning messages {1} of {2}".format(msg['simultaneous'],
@@ -112,7 +95,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                                 "msg": status_msg,
                                                 "num": args[1]})
                         except WebSocketClosedError:
-                            pass
+                            print "WebSocketClosedError"
 
                     if args[0] == 'download-complete':
                         self.extraction_complete = True
@@ -124,7 +107,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                                 "num": self.attachment_count})
                         
                         except WebSocketClosedError:
-                            pass
+                            print "WebSocketClosedError"
 
                     if args[0] == 'attachment-count':
                         self.attachment_count = args[1]
@@ -160,21 +143,15 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             update_type = args[0]
 
             if update_type == "zip-in-progress":
-                try:
-                    self.write_message({"ok": True,
-                                        "type": "zipping",
-                                        "link": "<span>Packaging images in a zip file...</span>"})
-                except WebSocketClosedError:
-                    pass
+                self.write_message({"ok": True,
+                                    "type": "zipping",
+                                    "link": "<span>Packaging images in a zip file...</span>"})
 
             if update_type == "save-passed":
-                try:
-                    self.write_message({"ok": True,
-                                        "type": "save",
-                                        "images": args[1],
-                                        "image_names": args[2]})
-                except WebSocketClosedError:
-                    pass
+                self.write_message({"ok": True,
+                                    "type": "save",
+                                    "images": args[1],
+                                    "image_names": args[2]})
 
             if update_type == "saved-zip":
                 save_zip_passed = args[1]
@@ -182,27 +159,24 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
                 download_path = "/download/" + self.file_name
                 if save_zip_passed:
-                    try:
-                        self.write_message({"ok": True,
-                                            "link": u"""<a href="{0}"
-                                            target="_blank" download>"""
-                                            "<h3>Click Here to Download Your Gmail Images</h3>"
-                                            "</a></br></br>"
-                                            "<span>"
-                                            "Time left before your link dissapears or click the "
-                                            "timer now to delete the link..."
-                                            "</span></br>"
-                                            "<a id=""remove-now"" href=""#"">"
-                                            "<div id='circle' class='circle'>"
-                                            "<strong class='circle-text'>{2}</strong></div></a>"
-                                            "".format(download_path,
-                                                      plural(u"minute",
-                                                             config.zip_removal_countdown/60),
-                                                      config.zip_removal_countdown/60),
-                                            "type": "saved-zip",
-                                            "time": config.zip_removal_countdown/60})
-                    except WebSocketClosedError:
-                        pass
+                    self.write_message({"ok": True,
+                                        "link": u"""<a href="{0}"
+                                        target="_blank" download>"""
+                                        "<h3>Click Here to Download Your Gmail Images</h3>"
+                                        "</a></br></br>"
+                                        "<span>"
+                                        "Time left before your link dissapears or click the "
+                                        "timer now to delete the link..."
+                                        "</span></br>"
+                                        "<a id=""remove-now"" href=""#"">"
+                                        "<div id='circle' class='circle'>"
+                                        "<strong class='circle-text'>{2}</strong></div></a>"
+                                        "".format(download_path,
+                                                  plural(u"minute",
+                                                         config.zip_removal_countdown/60),
+                                                  config.zip_removal_countdown/60),
+                                        "type": "saved-zip",
+                                        "time": config.zip_removal_countdown/60})
 
                     def _remove_link():
                         try:
@@ -210,14 +184,10 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                         except:
                             print "Failed to remove", self.file_name, "for user", self.get_secure_cookie('email')
                             return
-                        try:
-                            self.write_message({"ok": True,
-                                                "type": "removed-zip",
-                                                "msg": "Please check all attachments that"
-                                                " you want to remove from your Gmail account."})
-
-                        except WebSocketClosedError:
-                            pass
+                        self.write_message({"ok": True,
+                                            "type": "removed-zip",
+                                            "msg": "Please check all attachments that"
+                                            " you want to remove from your Gmail account."})
 
                     loop = tornado.ioloop.IOLoop.instance()
 
@@ -225,12 +195,8 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
                     self.timer = loop.call_later(config.zip_removal_countdown + int(config.zip_removal_countdown/10), _remove_link)
 
                 else:
-                    try:
-                        self.write_message(self.write(
-                            "<span> Failed to create zip file :( </span>"))
-
-                    except WebSocketClosedError:
-                        pass
+                    self.write_message(self.write(
+                        "<span> Failed to create zip file :( </span>"))
 
         try:
             extractor.save(msg, _save_status)
@@ -266,22 +232,15 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     def _handle_sync(self, msg):
         extractor = state['extractor']
 
-        try:
-            self.write_message({"ok": True,
-                                "type": "file-checking",
-                                "msg": u"Checking to see which files have been deleted."})
-
-        except WebSocketClosedError:
-            pass
+        self.write_message({"ok": True,
+                            "type": "file-checking",
+                            "msg": u"Checking to see which files have been deleted."})
         num_deletions = extractor.check_deletions()
-        try:
-            self.write_message({"ok": True,
-                                "type": "file-checked",
-                                "msg": u"Found {0} {1} deleted"
-                                "".format(num_deletions, plural(u"image", num_deletions)),
-                                "num": num_deletions})
-        except WebSocketClosedError:
-            pass
+        self.write_message({"ok": True,
+                            "type": "file-checked",
+                            "msg": u"Found {0} {1} deleted"
+                            "".format(num_deletions, plural(u"image", num_deletions)),
+                            "num": num_deletions})
 
     def _handle_confirmation(self, msg):
         extractor = state['extractor']
@@ -289,38 +248,29 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         def _sync_status(*args):
             update_type = args[0]
             if update_type == "fetch":
-                try:
-                    self.write_message({"ok": True,
-                                        "type": "removing",
-                                        "msg": u"Removing {0} {1} from message '{2}'."
-                                        "".format(args[2], args[1], plural(u"image", args[2]))})
-                
-                except WebSocketClosedError:
-                    pass
+                self.write_message({"ok": True,
+                                    "type": "removing",
+                                    "msg": u"Removing {0} {1} from message '{2}'."
+                                    "".format(args[2], args[1], plural(u"image", args[2]))})
             elif update_type == "write":
-                try:
-                    self.write_message({"ok": True,
-                                        "type": "removed",
-                                        "msg": u"Writing altered version of '{0}' to Gmail."
-                                        "".format(args[1])})
-                except WebSocketClosedError:
-                    pass
+                self.write_message({"ok": True,
+                                    "type": "removed",
+                                    "msg": u"Writing altered version of '{0}' to Gmail."
+                                    "".format(args[1])})
 
         num_attch_removed, num_msg_changed = extractor.sync(callback=_sync_status)
-        try:
-            self.write_message({"ok": True,
-                                "type": "finished",
-                                "msg": u"Removed {0} {1} from {2} {3}."
-                                "".format(num_attch_removed,
-                                          plural(u"image", num_attch_removed),
-                                          num_msg_changed,
-                                          plural(u"message", num_msg_changed))})
-        except WebSocketClosedError:
-            pass
+        self.write_message({"ok": True,
+                            "type": "finished",
+                            "msg": u"Removed {0} {1} from {2} {3}."
+                            "".format(num_attch_removed,
+                                      plural(u"image", num_attch_removed),
+                                      num_msg_changed,
+                                      plural(u"message", num_msg_changed))})
 
     def _handle_stop(self, msg):
         extractor = state['extractor']
         extractor.stop = True
+        self.stop = True
         attachment_count = self.attachment_count
 
         # allow front end to display status message to user
@@ -337,11 +287,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         # log user out of gmail upon closing connection
         user = self.get_secure_cookie('user')
         credentials = client.OAuth2Credentials.from_json(user)
+
         try:
             credentials.revoke(httplib2.Http())
         except:
             pass # error revoking credentials
 
-        # stop any current extraction processes
-        extractor = state['extractor']
-        extractor.stop = True
+        del state['extractor']
+
+

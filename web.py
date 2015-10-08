@@ -4,7 +4,7 @@ import os.path
 import tornado
 import tornado.httpserver
 import config
-
+import signal
 import app.handlers
 import app
 
@@ -50,6 +50,9 @@ class Application(tornado.web.Application):
 
         tornado.web.Application.__init__(self, handlers, **settings)
 
+# catch ctrl-c or ctrl-z
+def signal_handler(signum, frame):
+    tornado.ioloop.IOLoop.current().stop()
 
 def server_prompt():
     print ("-------------------------------------")
@@ -58,8 +61,8 @@ def server_prompt():
     print ("View at: {0}".format(config.base_url + ":" + str(options.port)))
     print ("-------------------------------------")
 
-
 def main():
+    signal.signal(signal.SIGINT, signal_handler)
     tornado.options.parse_command_line()
     application = Application()
     server_prompt()

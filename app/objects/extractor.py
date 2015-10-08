@@ -62,6 +62,8 @@ class GmailImageExtractor(object):
         self.per_page = 0
         self.num_messages = 0
         self.num_imap_requests = 4
+        self.search_string = "filename:jpg OR filename:gif OR filename:png"
+        #self.search_string = "has:attachment"
 
     def connect(self):
         """Attempts to connect to Gmail using the username and access_token provided
@@ -258,22 +260,24 @@ class GmailImageExtractor(object):
                 self.stop = True;
                 return
 
-            else:
-                _cb('message', self.offset)
+            _cb('message', self.offset)
 
-                #generator that produces images from given messages
-                images = self.image_generator(messages)
+            #generator that produces images from given messages
+            images = self.image_generator(messages)
 
-                # extract images from messages using image_generator
-                self.extract_images(images, callback)
+            # extract images from messages using image_generator
+            self.extract_images(images, callback)
 
-                #call for the next message batch
-                self.do_extract(callback)
+            #call for the next message batch
+            self.do_extract(callback)
 
         # get messages for extraction, keep track of the offset for future batches
-        self.fetch_message_batch(callback=_on_message_batch_fetched)
+        # first check if the user stopped the process or websockets connection
+        # has been closed
+        if not self.stop:
+            self.fetch_message_batch(callback=_on_message_batch_fetched)
 
-    def fetch_message_batch(self, search_string="has:attachment", callback=None):
+    def fetch_message_batch(self, callback=None):
         """Fetch a message batch given specific search string criteria. For more
             information about gmail search strings,
             visit: https://support.google.com/mail/answer/7190?hl=en
@@ -285,7 +289,7 @@ class GmailImageExtractor(object):
                 self.offset += len(args[0])
                 callback(*args)
 
-        self.inbox.search(search_string, full=True,
+        self.inbox.search(self.search_string, full=True,
                                      limit=self.per_page, offset=self.offset, callback=_on_response)
 
     def get_abs_path(self, file_name=None):
@@ -347,7 +351,7 @@ class GmailImageExtractor(object):
         """
 
         limit = self.limit if self.limit > 0 else False
-        gm_ids = self.inbox.search("has:attachment", gm_ids=True, limit=limit)
+        gm_ids = self.inbox.search(self.search_string, gm_ids=True, limit=limit)
         return len(gm_ids)
 
     def order_by_g_id(self, selected_images):
