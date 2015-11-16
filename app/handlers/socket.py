@@ -135,23 +135,16 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
     def _handle_delete(self, msg):
         extractor = state['extractor']
 
-        try:
-            num_messages_changed, num_images_deleted = extractor.delete(msg, callback=_delete_status)
-        except:
-            # couldn't complete delete
-            # this possibly occurred because the user tried to delete the same image twice
-            pass
-        try:
-            self.write_message({"ok": True,
-                                "type": "finished",
-                                "msg": u"Removed {0} {1} total from {2} {3}."
-                                "".format(num_images_deleted,
-                                          plural(u"image", num_images_deleted),
-                                          num_messages_changed,
-                                          plural(u"message", num_messages_changed))})
-        except:
-            pass
-            
+        # num_messages_changed, num_images_deleted = extractor.delete(msg, callback=_delete_status)
+        num_messages_changed, num_images_deleted = extractor.delete(msg)
+
+        self.write_message({"ok": True,
+                            "type": "finished",
+                            "msg": u"Removed {0} {1} total from {2} {3}."
+                            "".format(num_images_deleted,
+                                      plural(u"image", num_images_deleted),
+                                      num_messages_changed,
+                                      plural(u"message", num_messages_changed))})
 
     def _handle_save(self, msg):
         extractor = state['extractor']
