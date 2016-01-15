@@ -88,3 +88,11 @@ Credits and Acknowledgements
 Requirements
 ------------
 Please see [requirements.txt](https://github.com/bradleygolden/gmail-image-extractor/blob/master/requirements.txt)
+
+TODO
+----
+1. Fill a test account with sample emails containing image attachments. I believe the best option for this is to use Thunderbird. Thunderbird allows you to download emails from your private account and immediately upload those emails to another account using a "sync" feature.
+2. Save every image and check that each image has in fact been saved.
+2. Delete every single image from the test account using the Gmail Image Extractor.
+3. Check the test account for inconsitencies.
+Note: I've tested the save and delete feature pretty well but I have not had the opportunity to test their accuracy with larger samples (1k emails or more).
